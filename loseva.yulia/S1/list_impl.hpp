@@ -83,6 +83,82 @@ namespace loseva {
   size_t List<T>::get_size() const noexcept {
     return size;
   }
+  template<typename T>
+  void List<T>::push_front(const T& value) {
+    Node* new_node = detail::create_node<T>(value, head, nullptr);
+    if (head) {
+      head->prev = new_node;
+    } else {
+      tail = new_node;
+    }
+    head = new_node;
+    ++size;
+  }
+  template<typename T>
+  void List<T>::push_front(T&& value) {
+    Node* new_node = detail::create_node<T>(std::move(value), head, nullptr);
+    if (head) {
+      head->prev = new_node;
+    } else {
+      tail = new_node;
+    }
+    head = new_node;
+    ++size;
+  }
+  template<typename T>
+  void List<T>::push_back(const T& value) {
+    Node* new_node = detail::create_node<T>(value, nullptr, tail);
+    if (tail) {
+      tail->next = new_node;
+    } else {
+      head = new_node;
+    }
+    tail = new_node;
+    ++size;
+  }
+
+  template<typename T>
+  void List<T>::push_back(T&& value) {
+    Node* new_node = detail::create_node<T>(std::move(value), nullptr, tail);
+    if (tail) {
+      tail->next = new_node;
+    } else {
+      head = new_node;
+    }
+    tail = new_node;
+    ++size;
+  }
+  template<typename T>
+  void List<T>::pop_front() {
+    if (!head) {
+      throw std::out_of_range("List is empty");
+    };
+    Node* temp = head;
+    head = head->next;
+    if (head) {
+      head->prev = nullptr;
+    } else {
+      tail = nullptr;
+    }
+    delete temp;
+    --size;
+  }
+
+  template<typename T>
+  void List<T>::pop_back() {
+    if (!tail) {
+      throw std::out_of_range("List is empty");
+    };
+    Node* temp = tail;
+    tail = tail->prev;
+    if (tail) {
+      tail->next = nullptr;
+    } else {
+      head = nullptr;
+    }
+    delete temp;
+    --size;
+  }
 }
 
 #endif
