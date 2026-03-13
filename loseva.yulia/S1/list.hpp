@@ -19,3 +19,12 @@ private:
   Node* head;
   Node* tail;
   size_t size;
+public:
+  List();
+  explicit List(size_t count, const T& value = T());
+  List(std::initializer_list<T> init);
+  ~List();
+  T& front();
+  const T& front() const;
+  T& back();
+  const T& back() const;
