@@ -77,6 +77,23 @@ public:
   reverse_iterator rend() noexcept;
   const_reverse_iterator rend() const noexcept;
   const_reverse_iterator crend() const noexcept;
+  iterator insert(const_iterator pos, const T& value);
+  iterator insert(const_iterator pos, T&& value);
+  iterator insert(const_iterator pos, size_t count, const T& value);
+  template<typename InputIt>
+  iterator insert(const_iterator pos, InputIt first, InputIt last);
+  iterator insert(const_iterator pos, std::initializer_list<T> init);
+  template<typename... Args>
+  iterator emplace(const_iterator pos, Args&&... args);
+  iterator erase(const_iterator pos);
+  iterator erase(const_iterator first, const_iterator last);
+  template<typename... Args>
+  void emplace_front(Args&&... args);
+  template<typename... Args>
+  void emplace_back(Args&&... args);
+  void resize(size_t count);
+  void resize(size_t count, const T& value);
+  void swap(List& other) noexcept;
 
   List();
   explicit List(size_t count, const T& value = T());
