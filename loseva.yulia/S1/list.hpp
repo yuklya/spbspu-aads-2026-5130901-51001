@@ -1,164 +1,289 @@
-#ifndef LIST_HPP
-#define LIST_HPP
+#ifndef LOSEVA_LIST_HPP
+#define LOSEVA_LIST_HPP
 
 #include <cstddef>
-#include <initializer_list>
-#include <stdexcept>
 
-namespace loseva {
+namespace loseva
+{
 
-  template <typename T>
-  class List {
-  private:
-    struct Node {
-      T data;
-      Node* next;
-      Node* prev;
-      Node(const T& value, Node* n = nullptr, Node* p = nullptr)
-        : data(value), next(n), prev(p) {}
-      Node(T&& value, Node* n = nullptr, Node* p = nullptr)
-        : data(std::move(value)), next(n), prev(p) {}
-  };
-  Node* head;
-  Node* tail;
-  size_t size;
-  void clear() noexcept;
-  void copy_from(const List& other);
-  public:
-    class Iterator {
-      friend class List<T>;
-      Node* current;
-      explicit Iterator(Node* node);
-    public:
-      using iterator_category = std::bidirectional_iterator_tag;
-      using value_type = T;
-      using difference_type = std::ptrdiff_t;
-      using pointer = T*;
-      using reference = T&;
-      Iterator();
-      Iterator& operator++();
-      Iterator& operator--();
-      Iterator operator++(int);
-      Iterator operator--(int);
-      reference operator*() const;
-      pointer operator->() const;
-      bool operator==(const Iterator& other) const;
-      bool operator!=(const Iterator& other) const;
-    };
-  class ConstIterator {
-    friend class List<T>;
-    const Node* current;
-    explicit ConstIterator(const Node* node);
-    public:
-      using iterator_category = std::bidirectional_iterator_tag;
-      using value_type = const T;
-      using difference_type = std::ptrdiff_t;
-      using pointer = const T*;
-      using reference = const T&;
-      ConstIterator();
-      ConstIterator(const Iterator& it);
-      ConstIterator& operator++();
-      ConstIterator& operator--();
-      ConstIterator operator++(int);
-      ConstIterator operator--(int);
-      reference operator*() const;
-      pointer operator->() const;
-      bool operator==(const ConstIterator& other) const;
-      bool operator!=(const ConstIterator& other) const;
-    };
-    using iterator = Iterator;
-    using const_iterator = ConstIterator;
-    using reverse_iterator = std::reverse_iterator<iterator>;
-    using const_reverse_iterator = std::reverse_iterator<const_iterator>;
-    List();
-    explicit List(size_t count, const T& value = T());
-    List(std::initializer_list<T> init);
-    template<typename InputIt>
-    List(InputIt first, InputIt last);
-    List(const List& other);
-    List(List&& other) noexcept;
-    ~List();
-    List& operator=(const List& other);
-    List& operator=(List&& other) noexcept;
-    List& operator=(std::initializer_list<T> init);
-    T& front();
-    const T& front() const;
-    T& back();
-    const T& back() const;
-    iterator begin() noexcept;
-    const_iterator begin() const noexcept;
-    const_iterator cbegin() const noexcept;
-    iterator end() noexcept;
-    const_iterator end() const noexcept;
-    const_iterator cend() const noexcept;
-    reverse_iterator rbegin() noexcept;
-    const_reverse_iterator rbegin() const noexcept;
-    const_reverse_iterator crbegin() const noexcept;
-    reverse_iterator rend() noexcept;
-    const_reverse_iterator rend() const noexcept;
-    const_reverse_iterator crend() const noexcept;
-    bool empty() const noexcept;
-    size_t get_size() const noexcept;
-    void clear();
-    iterator insert(const_iterator pos, const T& value);
-    iterator insert(const_iterator pos, T&& value);
-    iterator insert(const_iterator pos, size_t count, const T& value);
-    template<typename InputIt>
-    iterator insert(const_iterator pos, InputIt first, InputIt last);
-    iterator insert(const_iterator pos, std::initializer_list<T> init);
-    template<typename... Args>
-    iterator emplace(const_iterator pos, Args&&... args);
-    iterator erase(const_iterator pos);
-    iterator erase(const_iterator first, const_iterator last);
-    void push_front(const T& value);
-    void push_front(T&& value);
-    void push_back(const T& value);
-    void push_back(T&& value);
-    template<typename... Args>
-    void emplace_front(Args&&... args);
-    template<typename... Args>
-    void emplace_back(Args&&... args);
-    void pop_front();
-    void pop_back();
-    void resize(size_t count);
-    void resize(size_t count, const T& value);
-    void swap(List& other) noexcept;
-    void splice(const_iterator pos, List& other);
-    void splice(const_iterator pos, List&& other);
-    void splice(const_iterator pos, List& other, const_iterator it);
-    void splice(const_iterator pos, List&& other, const_iterator it);
-    void splice(const_iterator pos, List& other, const_iterator first, const_iterator last);
-    void splice(const_iterator pos, List&& other, const_iterator first, const_iterator last);
-    void remove(const T& value);
-    template<typename Predicate>
-    void remove_if(Predicate pred);
-    void reverse() noexcept;
-    void unique();
-    template<typename BinaryPredicate>
-    void unique(BinaryPredicate pred);
-    void sort();
-    template<typename Compare>
-    void sort(Compare comp);
-    bool operator==(const List& other) const;
-    bool operator!=(const List& other) const;
-    bool operator<(const List& other) const;
-    bool operator<=(const List& other) const;
-    bool operator>(const List& other) const;
-    bool operator>=(const List& other) const;
-  private:
-    void merge_sort(Node*& start);
-    Node* merge(Node* left, Node* right);
-    template<typename Compare>
-    Node* merge(Node* left, Node* right, Compare comp);
-    void split(Node* source, Node*& front, Node*& back);
+template<class T>
+class List;
+
+template<class T>
+class LIter
+{
+  friend class List<T>;
+
+private:
+  struct Node
+  {
+    T data;
+    Node* next;
+
+    Node(const T& d, Node* n = nullptr):
+      data(d),
+      next(n)
+    {}
   };
 
-  template<typename T>
-  void swap(List<T>& lhs, List<T>& rhs) noexcept;
+  Node* node_;
+
+  explicit LIter(Node* node):
+    node_(node)
+  {}
+
+public:
+  LIter():
+    node_(nullptr)
+  {}
+
+  T& operator*()
+  {
+    return node_->data;
+  }
+
+  LIter& operator++()
+  {
+    node_ = node_->next;
+    return *this;
+  }
+
+  bool operator==(const LIter& other) const
+  {
+    return node_ == other.node_;
+  }
+
+  bool operator!=(const LIter& other) const
+  {
+    return node_ != other.node_;
+  }
+};
+
+
+template<class T>
+class LCIter
+{
+  friend class List<T>;
+
+private:
+  typename LIter<T>::Node* node_;
+
+  explicit LCIter(typename LIter<T>::Node* node):
+    node_(node)
+  {}
+
+public:
+  LCIter():
+    node_(nullptr)
+  {}
+
+  const T& operator*() const
+  {
+    return node_->data;
+  }
+
+  LCIter& operator++()
+  {
+    node_ = node_->next;
+    return *this;
+  }
+
+  bool operator==(const LCIter& other) const
+  {
+    return node_ == other.node_;
+  }
+
+  bool operator!=(const LCIter& other) const
+  {
+    return node_ != other.node_;
+  }
+};
+
+
+template<class T>
+class List
+{
+private:
+
+  using Node = typename LIter<T>::Node;
+
+  Node* head_;
+
+  Node* copyNodes(Node* other)
+  {
+    if (!other)
+      return nullptr;
+
+    Node* newHead = new Node(other->data);
+    Node* cur = newHead;
+    Node* src = other->next;
+
+    while (src)
+    {
+      cur->next = new Node(src->data);
+      cur = cur->next;
+      src = src->next;
+    }
+
+    return newHead;
+  }
+
+public:
+
+  using iterator = LIter<T>;
+  using const_iterator = LCIter<T>;
+
+  List():
+    head_(nullptr)
+  {}
+
+  ~List()
+  {
+    clear();
+  }
+
+  List(const List& other):
+    head_(copyNodes(other.head_))
+  {}
+
+  List(List&& other) noexcept:
+    head_(other.head_)
+  {
+    other.head_ = nullptr;
+  }
+
+  List& operator=(const List& other)
+  {
+    if (this != &other)
+    {
+      clear();
+      head_ = copyNodes(other.head_);
+    }
+
+    return *this;
+  }
+
+  List& operator=(List&& other) noexcept
+  {
+    if (this != &other)
+    {
+      clear();
+      head_ = other.head_;
+      other.head_ = nullptr;
+    }
+
+    return *this;
+  }
+
+  bool empty() const
+  {
+    return head_ == nullptr;
+  }
+
+  iterator begin()
+  {
+    return iterator(head_);
+  }
+
+  iterator end()
+  {
+    return iterator(nullptr);
+  }
+
+  const_iterator begin() const
+  {
+    return const_iterator(head_);
+  }
+
+  const_iterator end() const
+  {
+    return const_iterator(nullptr);
+  }
+
+  T& front()
+  {
+    return head_->data;
+  }
+
+  const T& front() const
+  {
+    return head_->data;
+  }
+
+  void push_front(const T& value)
+  {
+    head_ = new Node(value, head_);
+  }
+
+  void pop_front()
+  {
+    if (!head_)
+      return;
+
+    Node* tmp = head_;
+    head_ = head_->next;
+    delete tmp;
+  }
+
+  iterator insert_after(iterator pos, const T& value)
+  {
+    if (!pos.node_)
+      return end();
+
+    Node* n = new Node(value, pos.node_->next);
+    pos.node_->next = n;
+
+    return iterator(n);
+  }
+
+  void push_back(const T& value)
+  {
+    if (!head_)
+    {
+      push_front(value);
+      return;
+    }
+
+    Node* cur = head_;
+
+    while (cur->next)
+      cur = cur->next;
+
+    cur->next = new Node(value);
+  }
+
+  void pop_back()
+  {
+    if (!head_)
+      return;
+
+    if (!head_->next)
+    {
+      delete head_;
+      head_ = nullptr;
+      return;
+    }
+
+    Node* cur = head_;
+
+    while (cur->next->next)
+      cur = cur->next;
+
+    delete cur->next;
+    cur->next = nullptr;
+  }
+
+  void clear()
+  {
+    while (head_)
+    {
+      Node* tmp = head_;
+      head_ = head_->next;
+      delete tmp;
+    }
+  }
+};
 
 }
 
-#include "list_impl.hpp"
-
 #endif
-
