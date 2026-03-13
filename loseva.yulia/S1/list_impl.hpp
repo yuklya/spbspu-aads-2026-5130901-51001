@@ -321,6 +321,55 @@ namespace loseva {
   typename List<T>::const_reverse_iterator List<T>::crend() const noexcept {
     return const_reverse_iterator(cbegin());
   }
+  template<typename T>
+  List<T>::List(const List& other) : head(nullptr), tail(nullptr), size(0) {
+    copy_from(other);
+  }
+
+  template<typename T>
+  List<T>::List(List&& other) noexcept : head(other.head), tail(other.tail), size(other.size) {
+  other.head = nullptr;
+  other.tail = nullptr;
+  other.size = 0;
+  }
+
+  template<typename T>
+  void List<T>::copy_from(const List& other) {
+    for (const auto& item : other) {
+      push_back(item);
+    }
+  }
+
+  template<typename T>
+  List<T>& List<T>::operator=(const List& other) {
+    if (this != &other) {
+      clear();
+      copy_from(other);
+    }
+  return *this;
+  }
+  template<typename T>
+  List<T>& List<T>::operator=(List&& other) noexcept {
+    if (this != &other) {
+      clear();
+      head = other.head;
+      tail = other.tail;
+      size = other.size;
+      other.head = nullptr;
+      other.tail = nullptr;
+      other.size = 0;
+    }
+    return *this;
+  }
+
+  template<typename T>
+  List<T>& List<T>::operator=(std::initializer_list<T> init) {
+    clear();
+    for (const auto& item : init) {
+      push_back(item);
+    }
+    return *this;
+  }
 }
 
 #endif
