@@ -39,3 +39,6 @@ public:
   void clear();
   };
 }
+#include "list_impl.hpp"
+
+#endif // LIST_HPP
