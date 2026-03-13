@@ -6,7 +6,7 @@
 namespace loseva {
 
 template <typename T>
-typename List<T>::Node::Node(const T &value):
+typename List<T>::Node::Node (const T &value):
   value(value),
   next(nullptr),
   prev(nullptr)
@@ -14,7 +14,7 @@ typename List<T>::Node::Node(const T &value):
 }
 
 template <typename T>
-List<T>::List():
+typename List<T>::List():
   head_(nullptr),
   tail_(nullptr),
   size_(0)
@@ -22,7 +22,7 @@ List<T>::List():
 }
 
 template <typename T>
-List<T>::List(const List &other):
+typename List<T>::List (const List &other):
   head_(nullptr),
   tail_(nullptr),
   size_(0)
@@ -36,7 +36,7 @@ List<T>::List(const List &other):
 }
 
 template <typename T>
-List<T> &List<T>::operator=(const List &other)
+typename List<T> &List<T>::operator=(const List &other)
 {
   if (this != &other) {
     clear();
@@ -53,7 +53,7 @@ List<T> &List<T>::operator=(const List &other)
 }
 
 template <typename T>
-List<T>::~List()
+typename List<T>::~List()
 {
   clear();
 }
