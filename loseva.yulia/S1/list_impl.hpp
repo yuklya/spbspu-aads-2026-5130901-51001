@@ -44,6 +44,45 @@ namespace loseva {
     tail = nullptr;
     size = 0;
   }
+  template<typename T>
+  T& List<T>::front() {
+    if (!head) {
+      throw std::out_of_range("List is empty");
+    };
+    return head->data;
+  }
+  template<typename T>
+  const T& List<T>::front() const {
+    if (!head) {
+      throw std::out_of_range("List is empty");
+    };
+    return head->data;
+  }
+
+  template<typename T>
+  T& List<T>::back() {
+    if (!tail) {
+      throw std::out_of_range("List is empty");
+    };
+    return tail->data;
+  }
+  template<typename T>
+  const T& List<T>::back() const {
+    if (!tail) {
+    throw std::out_of_range("List is empty");
+    };
+    return tail->data;
+  }
+
+  template<typename T>
+  bool List<T>::empty() const noexcept {
+    return size == 0;
+  }
+
+  template<typename T>
+  size_t List<T>::get_size() const noexcept {
+    return size;
+  }
 }
 
 #endif
