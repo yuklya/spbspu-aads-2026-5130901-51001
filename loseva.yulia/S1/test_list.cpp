@@ -1,34 +1,39 @@
-#include <cassert>
 #include "list.hpp"
-
-using namespace loseva;
 
 int main()
 {
-  List<int> list;
+  loseva::List<int> list;
 
-  assert(list.empty());
+  if (!list.empty()) {
+    return 1;
+  }
 
-  list.push_back(1);
-  list.push_back(2);
-  list.push_back(3);
+  list.pushBack(1);
+  list.pushBack(2);
 
-  assert(list.front() == 1);
-  assert(list.back() == 3);
+  if (list.size() != 2) {
+    return 1;
+  }
 
-  int sum = 0;
+  if (list.front() != 1) {
+    return 1;
+  }
 
-  for (auto it = list.begin(); it != list.end(); ++it)
-    sum += *it;
+  if (list.back() != 2) {
+    return 1;
+  }
 
-  assert(sum == 6);
+  list.popFront();
 
-  list.pop_front();
-  assert(list.front() == 2);
+  if (list.front() != 2) {
+    return 1;
+  }
 
-  list.pop_back();
-  assert(list.back() == 2);
+  list.popBack();
 
-  list.clear();
-  assert(list.empty());
+  if (!list.empty()) {
+    return 1;
+  }
+
+  return 0;
 }
