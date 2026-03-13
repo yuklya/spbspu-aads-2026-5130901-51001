@@ -159,6 +159,169 @@ namespace loseva {
     delete temp;
     --size;
   }
+ template<typename T>
+  List<T>::Iterator::Iterator(Node* node) : current(node) {}
+  template<typename T>
+  List<T>::Iterator::Iterator() : current(nullptr) {}
+  template<typename T>
+  typename List<T>::Iterator& List<T>::Iterator::operator++() {
+    if (current) {
+      current = current->next;
+    }
+    return *this;
+ }
+  template<typename T>
+  typename List<T>::Iterator List<T>::Iterator::operator++(int) {
+    Iterator temp = *this;
+    ++(*this);
+    return temp;
+  }
+
+  template<typename T>
+  typename List<T>::Iterator& List<T>::Iterator::operator--() {
+    if (current) {
+      current = current->prev;
+    }
+    return *this;
+  }
+  template<typename T>
+  typename List<T>::Iterator List<T>::Iterator::operator--(int) {
+    Iterator temp = *this;
+    --(*this);
+    return temp;
+  }
+  template<typename T>
+  T& List<T>::Iterator::operator*() const {
+    return current->data;
+  }
+  template<typename T>
+  T* List<T>::Iterator::operator->() const {
+    return &(current->data);
+  }
+
+  template<typename T>
+  bool List<T>::Iterator::operator==(const Iterator& other) const {
+    return current == other.current;
+  }
+
+  template<typename T>
+  bool List<T>::Iterator::operator!=(const Iterator& other) const {
+    return !(*this == other);
+  }
+
+  template<typename T>
+  List<T>::ConstIterator::ConstIterator(const Node* node) : current(node) {}
+
+  template<typename T>
+  List<T>::ConstIterator::ConstIterator() : current(nullptr) {}
+
+  template<typename T>
+  List<T>::ConstIterator::ConstIterator(const Iterator& it) : current(it.current) {}
+
+  template<typename T>
+  typename List<T>::ConstIterator& List<T>::ConstIterator::operator++() {
+    if (current) {
+      current = current->next;
+    }
+    return *this;
+  }
+
+  template<typename T>
+  typename List<T>::ConstIterator List<T>::ConstIterator::operator++(int) {
+    ConstIterator temp = *this;
+    ++(*this);
+    return temp;
+  }
+  template<typename T>
+  typename List<T>::ConstIterator& List<T>::ConstIterator::operator--() {
+    if (current) {
+      current = current->prev;
+    }
+    return *this;
+  }
+
+  template<typename T>
+  typename List<T>::ConstIterator List<T>::ConstIterator::operator--(int) {
+    ConstIterator temp = *this;
+    --(*this);
+    return temp;
+  }
+
+  template<typename T>
+  const T& List<T>::ConstIterator::operator*() const {
+    return current->data;
+  }
+
+  template<typename T>
+  const T* List<T>::ConstIterator::operator->() const {
+    return &(current->data);
+  }
+
+  template<typename T>
+  bool List<T>::ConstIterator::operator==(const ConstIterator& other) const {
+    return current == other.current;
+  }
+
+  template<typename T>
+  bool List<T>::ConstIterator::operator!=(const ConstIterator& other) const {
+    return !(*this == other);
+  }
+
+  template<typename T>
+  typename List<T>::iterator List<T>::begin() noexcept {
+    return iterator(head);
+  }
+
+  template<typename T>
+  typename List<T>::const_iterator List<T>::begin() const noexcept {
+    return const_iterator(head);
+  }
+  template<typename T>
+  typename List<T>::const_iterator List<T>::cbegin() const noexcept {
+    return const_iterator(head);
+  }
+  template<typename T>
+  typename List<T>::iterator List<T>::end() noexcept {
+    return iterator(nullptr);
+  }
+  template<typename T>
+  typename List<T>::const_iterator List<T>::end() const noexcept {
+    return const_iterator(nullptr);
+  }
+  template<typename T>
+  typename List<T>::const_iterator List<T>::cend() const noexcept {
+    return const_iterator(nullptr);
+  }
+
+  template<typename T>
+  typename List<T>::reverse_iterator List<T>::rbegin() noexcept {
+    return reverse_iterator(end());
+  }
+
+  template<typename T>
+  typename List<T>::const_reverse_iterator List<T>::rbegin() const noexcept {
+    return const_reverse_iterator(end());
+  }
+
+  template<typename T>
+  typename List<T>::const_reverse_iterator List<T>::crbegin() const noexcept {
+    return const_reverse_iterator(cend());
+  }
+  template<typename T>
+  typename List<T>::reverse_iterator List<T>::rend() noexcept {
+    return reverse_iterator(begin());
+  }
+
+  template<typename T>
+  typename List<T>::const_reverse_iterator List<T>::rend() const noexcept {
+    return const_reverse_iterator(begin());
+  }
+
+  template<typename T>
+  typename List<T>::const_reverse_iterator List<T>::crend() const noexcept {
+    return const_reverse_iterator(cbegin());
+  }
 }
 
 #endif
+
