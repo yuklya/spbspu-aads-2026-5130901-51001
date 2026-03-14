@@ -9,7 +9,7 @@ template <typename T>
 class Sequence
 {
 public:
-  virtual ~Sequence();
+  virtual ~Sequence() = default;
 
   virtual void pushBack(const T &value) = 0;
   virtual void pushFront(const T &value) = 0;
