@@ -1,6 +1,8 @@
 #ifndef LOSEVA_LIST_IMPL_HPP
 #define LOSEVA_LIST_IMPL_HPP
 
+#include "list.hpp"
+
 namespace loseva
 {
 
@@ -120,7 +122,6 @@ void List<T>::clear()
   }
 }
 
-/* ITERATORS */
 
 template<class T>
 LIter<T>::LIter(Node<T>* ptr):
@@ -178,7 +179,6 @@ const T* LIter<T>::operator->() const
   return &(ptr_->data);
 }
 
-/* CONST ITERATOR */
 
 template<class T>
 LCIter<T>::LCIter(const Node<T>* ptr):
