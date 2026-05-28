@@ -1,3 +1,4 @@
+#define BOOST_TEST_MODULE ListTests
 #include <stdexcept>
 #include <boost/test/unit_test.hpp>
 #include "list.hpp"
