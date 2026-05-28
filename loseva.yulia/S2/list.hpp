@@ -142,7 +142,7 @@ namespace loseva {
     size_t size_;
   };
 
-#include "list_impl.hpp"
 }
+#include "list_impl.hpp"
 
 #endif
