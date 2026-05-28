@@ -115,10 +115,10 @@ int main(int argc, char* argv[]) {
 
     std::stringstream ss(line);
     std::string token_str;
-    
+
     loseva::List<char> op_stack;
     loseva::List<PostfixToken> postfix;
-    
+
     bool expect_operand = true;
     bool valid = true;
 
