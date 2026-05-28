@@ -48,6 +48,13 @@ namespace loseva {
         return *this;
       }
 
+      iterator operator--(int)
+      {
+        iterator tmp = *this;
+        --(*this);
+        return tmp;
+      }
+
       bool operator==(const iterator &other) const
       {
         return ptr_ == other.ptr_;
@@ -143,6 +150,7 @@ namespace loseva {
   };
 
 }
+
 #include "list_impl.hpp"
 
 #endif
