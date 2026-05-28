@@ -10,16 +10,16 @@ namespace loseva {
   class List {
     private:
       struct Node {
-      T data;
-      Node* next;
-      Node* prev;
+        T data;
+        Node* next;
+        Node* prev;
 
-      Node(const T& val) : data(val), next(nullptr), prev(nullptr) {}
+        Node(const T& val) : data(val), next(nullptr), prev(nullptr) {}
       };
 
-    Node* head_;
-    Node* tail_;
-    size_t size_;
+      Node* head_;
+      Node* tail_;
+      size_t size_;
 
     public:
       class iterator {
@@ -38,59 +38,59 @@ namespace loseva {
           bool operator==(const iterator& other) const { return ptr_ == other.ptr_; }
           bool operator!=(const iterator& other) const { return ptr_ != other.ptr_; }
 
-      friend class List;
-    };
+        friend class List;
+      };
 
-    class const_iterator {
-      const Node* ptr_;
-      public:
-        const_iterator(const Node* p = nullptr) : ptr_(p) {}
+      class const_iterator {
+        const Node* ptr_;
+        public:
+          const_iterator(const Node* p = nullptr) : ptr_(p) {}
 
-        const T& operator*() const { return ptr_->data; }
+          const T& operator*() const { return ptr_->data; }
 
-      const_iterator& operator++() { ptr_ = ptr_->next; return *this; }
-      bool operator!=(const const_iterator& other) const {
-        return ptr_ != other.ptr_;
-      }
+          const_iterator& operator++() { ptr_ = ptr_->next; return *this; }
+          bool operator!=(const const_iterator& other) const {
+            return ptr_ != other.ptr_;
+          }
 
-      friend class List;
-    };
+        friend class List;
+      };
 
-  List();
-  ~List();
+      List();
+      ~List();
 
-  List(const List& other);
-  List& operator=(const List& other);
+      List(const List& other);
+      List& operator=(const List& other);
 
-  List(List&& other) noexcept;
-  List& operator=(List&& other) noexcept;
+      List(List&& other) noexcept;
+      List& operator=(List&& other) noexcept;
 
-  bool empty() const;
-  size_t size() const;
+      bool empty() const;
+      size_t size() const;
 
-  void clear();
+      void clear();
 
-  T& front();
-  T& back();
+      T& front();
+      T& back();
 
-  void push_back(const T& val);
-  void push_front(const T& val);
+      void push_back(const T& val);
+      void push_front(const T& val);
 
-  void pop_back();
-  void pop_front();
+      void pop_back();
+      void pop_front();
 
-  iterator insert(iterator pos, const T& val);
-  iterator erase(iterator pos);
+      iterator insert(iterator pos, const T& val);
+      iterator erase(iterator pos);
 
-  iterator begin();
-  iterator end();
+      iterator begin();
+      iterator end();
 
-  const_iterator begin() const;
-  const_iterator end() const;
+      const_iterator begin() const;
+      const_iterator end() const;
   };
-#include "list_impl.hpp"
+
 }
 
-
+#include "list_impl.hpp"
 
 #endif
