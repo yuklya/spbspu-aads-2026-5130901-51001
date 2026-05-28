@@ -2,151 +2,137 @@
 #define LOSEVA_LIST_IMPL_HPP
 
 #include <stdexcept>
-#include <utility>
-#include "list.hpp"
 
 namespace loseva {
 
-  template < typename T >
-  List< T >::List():
-    head_(nullptr),
-    tail_(nullptr),
-    size_(0)
-  {
+  template <typename T>
+  List<T>::List() : head_(nullptr), tail_(nullptr), size_(0) {
   }
 
-  template < typename T >
-  List< T >::~List()
-  {
+  template <typename T>
+  List<T>::~List() {
     clear();
   }
 
-  template < typename T >
-  List< T >::List(const List< T > &other):
-    List()
-  {
+  template <typename T>
+  List<T>::List(const List& other) : List() {
     for (auto it = other.begin(); it != other.end(); ++it) {
       push_back(*it);
     }
   }
 
-  template < typename T >
-  List< T > &List< T >::operator=(const List< T > &other)
-  {
+  template <typename T>
+  List<T>& List<T>::operator=(const List& other) {
     if (this != &other) {
-      List< T > temp(other);
-
-      std::swap(head_, temp.head_);
-      std::swap(tail_, temp.tail_);
-      std::swap(size_, temp.size_);
+      clear();
+      for (auto it = other.begin(); it != other.end(); ++it) {
+        push_back(*it);
+      }
     }
     return *this;
   }
 
-  template < typename T >
-  List< T >::List(List< T > &&other) noexcept:
-    head_(other.head_),
-    tail_(other.tail_),
-    size_(other.size_)
-  {
-    other.head_ = nullptr;
-    other.tail_ = nullptr;
+  template <typename T>
+  List<T>::List(List&& other) noexcept : head_(other.head_), tail_(other.tail_), size_(other.size_) {
+    other.head_ = other.tail_ = nullptr;
     other.size_ = 0;
   }
 
-  template < typename T >
-  List< T > &List< T >::operator=(List< T > &&other) noexcept
-  {
+  template <typename T>
+  List<T>& List<T>::operator=(List&& other) noexcept {
     if (this != &other) {
       clear();
       head_ = other.head_;
       tail_ = other.tail_;
       size_ = other.size_;
 
-      other.head_ = nullptr;
-      other.tail_ = nullptr;
+      other.head_ = other.tail_ = nullptr;
       other.size_ = 0;
     }
     return *this;
   }
 
-  template < typename T >
-  bool List< T >::empty() const
-  {
+  template <typename T>
+  bool List<T>::empty() const {
     return size_ == 0;
   }
 
-  template < typename T >
-  size_t List< T >::size() const
-  {
+  template <typename T>
+  size_t List<T>::size() const {
     return size_;
   }
 
-  template < typename T >
-  void List< T >::clear()
-  {
+  template <typename T>
+  void List<T>::clear() {
     while (!empty()) {
       pop_front();
     }
   }
 
-  template < typename T >
-  T &List< T >::front()
-  {
+  template <typename T>
+  T& List<T>::front() {
     if (empty()) {
-      throw std::out_of_range("empty list");
+      throw std::underflow_error("List is empty");
     }
     return head_->data;
   }
 
-  template < typename T >
-  T &List< T >::back()
-  {
+  template <typename T>
+  const T& List<T>::front() const {
     if (empty()) {
-      throw std::out_of_range("empty list");
+      throw std::underflow_error("List is empty");
+    }
+    return head_->data;
+  }
+
+  template <typename T>
+  T& List<T>::back() {
+    if (empty()) {
+      throw std::underflow_error("List is empty");
     }
     return tail_->data;
   }
 
-  template < typename T >
-  void List< T >::push_back(const T &val)
-  {
-    Node *n = new Node(val);
-
+  template <typename T>
+  const T& List<T>::back() const {
     if (empty()) {
-      head_ = n;
-      tail_ = n;
-    } else {
+      throw std::underflow_error("List is empty");
+    }
+    return tail_->data;
+  }
+
+  template <typename T>
+  void List<T>::push_back(const T& val) {
+    Node* n = new Node(val);
+    if (tail_) {
       tail_->next = n;
       n->prev = tail_;
       tail_ = n;
-    }
-    ++size_;
-  }
-
-  template < typename T >
-  void List< T >::push_front(const T &val)
-  {
-    Node *n = new Node(val);
-
-    if (empty()) {
-      head_ = n;
-      tail_ = n;
     } else {
-      n->next = head_;
-      head_->prev = n;
-      head_ = n;
+      head_ = tail_ = n;
     }
     ++size_;
   }
 
-  template < typename T >
-  void List< T >::pop_back()
-  {
-    if (empty()) {
-      return;
+  template <typename T>
+  void List<T>::push_front(const T& val) {
+    Node* n = new Node(val);
+    if (head_) {
+      head_->prev = n;
+      n->next = head_;
+      head_ = n;
+    } else {
+      head_ = tail_ = n;
     }
-    Node *tmp = tail_;
+    ++size_;
+  }
+
+  template <typename T>
+  void List<T>::pop_back() {
+    if (empty()) {
+      throw std::underflow_error("List is empty");
+    }
+    Node* tmp = tail_;
     tail_ = tail_->prev;
 
     if (tail_) {
@@ -158,13 +144,12 @@ namespace loseva {
     --size_;
   }
 
-  template < typename T >
-  void List< T >::pop_front()
-  {
+  template <typename T>
+  void List<T>::pop_front() {
     if (empty()) {
-      return;
+      throw std::underflow_error("List is empty");
     }
-    Node *tmp = head_;
+    Node* tmp = head_;
     head_ = head_->next;
 
     if (head_) {
@@ -176,17 +161,16 @@ namespace loseva {
     --size_;
   }
 
-  template < typename T >
-  typename List< T >::iterator
-  List< T >::insert(iterator pos, const T &val)
-  {
+  template <typename T>
+  typename List<T>::iterator
+  List<T>::insert(iterator pos, const T& val) {
     if (pos.ptr_ == nullptr) {
       push_back(val);
       return iterator(tail_);
     }
 
-    Node *cur = pos.ptr_;
-    Node *n = new Node(val);
+    Node* cur = pos.ptr_;
+    Node* n = new Node(val);
 
     n->next = cur;
     n->prev = cur->prev;
@@ -203,20 +187,19 @@ namespace loseva {
     return iterator(n);
   }
 
-  template < typename T >
-  typename List< T >::iterator
-  List< T >::erase(iterator pos)
-  {
+  template <typename T>
+  typename List<T>::iterator
+  List<T>::erase(iterator pos) {
     if (pos.ptr_ == nullptr) {
       return end();
     }
-    Node *cur = pos.ptr_;
-    Node *next = cur->next;
+    Node* cur = pos.ptr_;
+    Node* next = cur->next;
 
     if (cur->prev) {
       cur->prev->next = cur->next;
     } else {
-      head_ = cur->next;
+      head = cur->next;
     }
     if (cur->next) {
       cur->next->prev = cur->prev;
@@ -227,30 +210,6 @@ namespace loseva {
     --size_;
 
     return iterator(next);
-  }
-
-  template < typename T >
-  typename List< T >::iterator List< T >::begin()
-  {
-    return iterator(head_);
-  }
-
-  template < typename T >
-  typename List< T >::iterator List< T >::end()
-  {
-    return iterator(nullptr);
-  }
-
-  template < typename T >
-  typename List< T >::const_iterator List< T >::begin() const
-  {
-    return const_iterator(head_);
-  }
-
-  template < typename T >
-  typename List< T >::const_iterator List< T >::end() const
-  {
-    return const_iterator(nullptr);
   }
 
 }
