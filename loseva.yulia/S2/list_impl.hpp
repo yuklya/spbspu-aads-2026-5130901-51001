@@ -4,6 +4,7 @@
 #include <stdexcept>
 #include <utility>
 #include "list.hpp"
+
 namespace loseva {
 
   template < typename T >
@@ -21,7 +22,7 @@ namespace loseva {
   }
 
   template < typename T >
-  List< T >::List(const List &other):
+  List< T >::List(const List< T > &other):
     List()
   {
     for (auto it = other.begin(); it != other.end(); ++it) {
@@ -30,7 +31,7 @@ namespace loseva {
   }
 
   template < typename T >
-  List< T > &List< T >::operator=(const List &other)
+  List< T > &List< T >::operator=(const List< T > &other)
   {
     if (this != &other) {
       List< T > temp(other);
@@ -43,7 +44,7 @@ namespace loseva {
   }
 
   template < typename T >
-  List< T >::List(List &&other) noexcept:
+  List< T >::List(List< T > &&other) noexcept:
     head_(other.head_),
     tail_(other.tail_),
     size_(other.size_)
@@ -54,7 +55,7 @@ namespace loseva {
   }
 
   template < typename T >
-  List< T > &List< T >::operator=(List &&other) noexcept
+  List< T > &List< T >::operator=(List< T > &&other) noexcept
   {
     if (this != &other) {
       clear();
