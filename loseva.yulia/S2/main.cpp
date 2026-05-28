@@ -2,18 +2,21 @@
 #include <string>
 #include "list.hpp"
 
-using namespace loseva;
+int main()
+{
+  using namespace loseva;
 
-int main() {
-  List<std::pair<std::string, List<int>>> data;
+  List< std::pair< std::string, List< int > > > data;
 
   while (true) {
     std::string name;
-    if (!(std::cin >> name)) break;
+    if (!(std::cin >> name)) {
+      break;
+    }
 
-    List<int> numbers;
+    List< int > numbers;
 
-    int x;
+    int x = 0;
     while (std::cin.peek() != '\n' && std::cin >> x) {
       numbers.push_back(x);
     }
@@ -31,15 +34,15 @@ int main() {
   }
   std::cout << "\n";
 
-  List<typename List<int>::iterator> its;
-  List<typename List<int>::iterator> ends;
+  List< typename List< int >::iterator > its;
+  List< typename List< int >::iterator > ends;
 
   for (auto it = data.begin(); it != data.end(); ++it) {
     its.push_back((*it).second.begin());
     ends.push_back((*it).second.end());
   }
 
-  List<int> results;
+  List< int > results;
 
   bool done = false;
   while (!done) {
@@ -59,7 +62,7 @@ int main() {
         res |= val;
         has = true;
 
-        ++((*it_it));
+        ++(*it_it);
         done = false;
       }
       ++it_it;
@@ -68,7 +71,9 @@ int main() {
 
     if (!done) {
       std::cout << "\n";
-      if (has) results.push_back(res);
+      if (has) {
+        results.push_back(res);
+      }
     }
   }
 
