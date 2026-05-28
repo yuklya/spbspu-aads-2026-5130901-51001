@@ -253,4 +253,5 @@ namespace loseva {
   }
 
 }
-#endif 
+
+#endif
