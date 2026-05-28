@@ -6,6 +6,9 @@
 namespace loseva {
 
   template <typename T>
+  class List;
+
+  template <typename T>
   List<T>::List() : head_(nullptr), tail_(nullptr), size_(0) {
   }
 
@@ -199,7 +202,7 @@ namespace loseva {
     if (cur->prev) {
       cur->prev->next = cur->next;
     } else {
-      head = cur->next;
+      head_ = cur->next;
     }
     if (cur->next) {
       cur->next->prev = cur->prev;
