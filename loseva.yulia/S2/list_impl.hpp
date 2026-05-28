@@ -20,6 +20,7 @@ namespace loseva {
       push_back(*it);
     }
   }
+
   template <typename T>
   List<T>& List<T>::operator=(const List& other) {
     if (this != &other) {
@@ -27,9 +28,10 @@ namespace loseva {
       for (auto it = other.begin(); it != other.end(); ++it) {
         push_back(*it);
       }
-      return *this;
     }
+    return *this;
   }
+
   template <typename T>
   List<T>::List(List&& other) noexcept : head_(other.head_), tail_(other.tail_), size_(other.size_) {
     other.head_ = other.tail_ = nullptr;
@@ -71,7 +73,7 @@ namespace loseva {
   T& List<T>::front() {
     if (empty()) {
       throw std::out_of_range("empty list");
-    };
+    }
     return head_->data;
   }
 
@@ -79,7 +81,7 @@ namespace loseva {
   T& List<T>::back() {
     if (empty()) {
       throw std::out_of_range("empty list");
-    };
+    }
     return tail_->data;
   }
 
@@ -115,7 +117,7 @@ namespace loseva {
   void List<T>::pop_back() {
     if (empty()) {
       return;
-    };
+    }
     Node* tmp = tail_;
     tail_ = tail_->prev;
 
@@ -123,7 +125,7 @@ namespace loseva {
       tail_->next = nullptr;
     } else {
       head_ = nullptr;
-    };
+    }
     delete tmp;
     --size_;
   }
@@ -132,7 +134,7 @@ namespace loseva {
   void List<T>::pop_front() {
     if (empty()) {
       return;
-    };
+    }
     Node* tmp = head_;
     head_ = head_->next;
 
@@ -140,7 +142,7 @@ namespace loseva {
       head_->prev = nullptr;
     } else {
       tail_ = nullptr;
-    };
+    }
     delete tmp;
     --size_;
   }
@@ -151,7 +153,7 @@ namespace loseva {
     if (pos.ptr_ == nullptr) {
       push_back(val);
       return iterator(tail_);
-    };
+    }
 
     Node* cur = pos.ptr_;
     Node* n = new Node(val);
@@ -163,7 +165,7 @@ namespace loseva {
       cur->prev->next = n;
     } else {
       head_ = n;
-    };
+    }
 
     cur->prev = n;
 
@@ -176,7 +178,7 @@ namespace loseva {
   List<T>::erase(iterator pos) {
     if (pos.ptr_ == nullptr) {
       return end();
-    };
+    }
     Node* cur = pos.ptr_;
     Node* next = cur->next;
 
@@ -184,12 +186,12 @@ namespace loseva {
       cur->prev->next = cur->next;
     } else {
       head_ = cur->next;
-    };
+    }
     if (cur->next) {
       cur->next->prev = cur->prev;
     } else {
       tail_ = cur->prev;
-    };
+    }
     delete cur;
     --size_;
 
