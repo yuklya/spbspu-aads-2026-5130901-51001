@@ -6,91 +6,143 @@
 
 namespace loseva {
 
-  template <typename T>
+  template < typename T >
   class List {
-    private:
-      struct Node {
-        T data;
-        Node* next;
-        Node* prev;
+  private:
+    struct Node;
 
-        Node(const T& val) : data(val), next(nullptr), prev(nullptr) {}
-      };
-
-      Node* head_;
-      Node* tail_;
-      size_t size_;
-
+  public:
+    class iterator {
     public:
-      class iterator {
-        Node* ptr_;
-        public:
-          iterator(Node* p = nullptr) : ptr_(p) {}
+      iterator(Node *p = nullptr):
+        ptr_(p)
+      {
+      }
 
-          T& operator*() { return ptr_->data; }
-          T* operator->() { return &ptr_->data; }
+      T &operator*()
+      {
+        return ptr_->data;
+      }
 
-          iterator& operator++() { ptr_ = ptr_->next; return *this; }
-          iterator operator++(int) { iterator tmp = *this; ++(*this); return tmp; }
+      T *operator->()
+      {
+        return &ptr_->data;
+      }
 
-          iterator& operator--() { ptr_ = ptr_->prev; return *this; }
+      iterator &operator++()
+      {
+        ptr_ = ptr_->next;
+        return *this;
+      }
 
-          bool operator==(const iterator& other) const { return ptr_ == other.ptr_; }
-          bool operator!=(const iterator& other) const { return ptr_ != other.ptr_; }
+      iterator operator++(int)
+      {
+        iterator tmp = *this;
+        ++(*this);
+        return tmp;
+      }
 
-        friend class List;
-      };
+      iterator &operator--()
+      {
+        ptr_ = ptr_->prev;
+        return *this;
+      }
 
-      class const_iterator {
-        const Node* ptr_;
-        public:
-          const_iterator(const Node* p = nullptr) : ptr_(p) {}
+      bool operator==(const iterator &other) const
+      {
+        return ptr_ == other.ptr_;
+      }
 
-          const T& operator*() const { return ptr_->data; }
+      bool operator!=(const iterator &other) const
+      {
+        return ptr_ != other.ptr_;
+      }
 
-          const_iterator& operator++() { ptr_ = ptr_->next; return *this; }
-          bool operator!=(const const_iterator& other) const {
-            return ptr_ != other.ptr_;
-          }
+      friend class List< T >;
 
-        friend class List;
-      };
+    private:
+      Node *ptr_;
+    };
 
-      List();
-      ~List();
+    class const_iterator {
+    public:
+      const_iterator(const Node *p = nullptr):
+        ptr_(p)
+      {
+      }
 
-      List(const List& other);
-      List& operator=(const List& other);
+      const T &operator*() const
+      {
+        return ptr_->data;
+      }
 
-      List(List&& other) noexcept;
-      List& operator=(List&& other) noexcept;
+      const_iterator &operator++()
+      {
+        ptr_ = ptr_->next;
+        return *this;
+      }
 
-      bool empty() const;
-      size_t size() const;
+      bool operator!=(const const_iterator &other) const
+      {
+        return ptr_ != other.ptr_;
+      }
 
-      void clear();
+      friend class List< T >;
 
-      T& front();
-      T& back();
+    private:
+      const Node *ptr_;
+    };
 
-      void push_back(const T& val);
-      void push_front(const T& val);
+    List();
+    List(const List &other);
+    List(List &&other) noexcept;
+    ~List();
 
-      void pop_back();
-      void pop_front();
+    List &operator=(const List &other);
+    List &operator=(List &&other) noexcept;
 
-      iterator insert(iterator pos, const T& val);
-      iterator erase(iterator pos);
+    bool empty() const;
+    size_t size() const;
+    void clear();
 
-      iterator begin();
-      iterator end();
+    T &front();
+    T &back();
 
-      const_iterator begin() const;
-      const_iterator end() const;
+    void push_back(const T &val);
+    void push_front(const T &val);
+
+    void pop_back();
+    void pop_front();
+
+    iterator insert(iterator pos, const T &val);
+    iterator erase(iterator pos);
+
+    iterator begin();
+    iterator end();
+
+    const_iterator begin() const;
+    const_iterator end() const;
+
+  private:
+    struct Node {
+      T data;
+      Node *next;
+      Node *prev;
+
+      Node(const T &val):
+        data(val),
+        next(nullptr),
+        prev(nullptr)
+      {
+      }
+    };
+
+    Node *head_;
+    Node *tail_;
+    size_t size_;
   };
 
-}
-
 #include "list_impl.hpp"
+}
 
 #endif
