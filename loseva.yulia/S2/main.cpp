@@ -250,15 +250,13 @@ int main(int argc, char* argv[]) {
     results.push_front(final_res);
   }
 
-  if (!results.empty()) {
-    for (auto it = results.begin(); it != results.end(); ++it) {
-      if (it != results.begin()) {
-        std::cout << " ";
-      }
-      std::cout << *it;
+  for (auto it = results.begin(); it != results.end(); ++it) {
+    if (it != results.begin()) {
+      std::cout << " ";
     }
-    std::cout << "\n";
+    std::cout << *it;
   }
+  std::cout << "\n";
 
   return 0;
 }
