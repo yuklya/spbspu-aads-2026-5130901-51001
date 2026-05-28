@@ -1,264 +1,81 @@
 #include <iostream>
-#include <fstream>
-#include <sstream>
 #include <string>
-#include <cctype>
-#include <limits>
-#include <stdexcept>
 #include "list.hpp"
 
-enum TokenType {
-  TOK_NUMBER,
-  TOK_OPERATOR
-};
+using namespace loseva;
 
-struct PostfixToken {
-  TokenType type;
-  long long value;
-  char op;
-};
+int main() {
+  List<std::pair<std::string, List<int>>> data;
 
-long long safe_add(long long a, long long b) {
-  if ((b > 0 && a > std::numeric_limits<long long>::max() - b) ||
-      (b < 0 && a < std::numeric_limits<long long>::min() - b)) {
-    throw std::overflow_error("overflow");
-  }
-  return a + b;
-}
+  while (true) {
+    std::string name;
+    if (!(std::cin >> name)) break;
 
-long long safe_sub(long long a, long long b) {
-  if ((b < 0 && a > std::numeric_limits<long long>::max() + b) ||
-      (b > 0 && a < std::numeric_limits<long long>::min() + b)) {
-    throw std::overflow_error("overflow");
-  }
-  return a - b;
-}
+    List<int> numbers;
 
-long long safe_mul(long long a, long long b) {
-  if (a != 0 && b != 0) {
-    if (a > 0 && b > 0 && a > std::numeric_limits<long long>::max() / b) throw std::overflow_error("overflow");
-    if (a > 0 && b < 0 && b < std::numeric_limits<long long>::min() / a) throw std::overflow_error("overflow");
-    if (a < 0 && b > 0 && a < std::numeric_limits<long long>::min() / b) throw std::overflow_error("overflow");
-    if (a < 0 && b < 0) {
-      if (a == std::numeric_limits<long long>::min() || b == std::numeric_limits<long long>::min()) throw std::overflow_error("overflow");
-      if (-a > std::numeric_limits<long long>::max() / (-b)) throw std::overflow_error("overflow");
+    int x;
+    while (std::cin.peek() != '\n' && std::cin >> x) {
+      numbers.push_back(x);
     }
-  }
-  return a * b;
-}
 
-long long safe_div(long long a, long long b) {
-  if (b == 0) {
-    throw std::runtime_error("division by zero");
+    data.push_back({name, numbers});
   }
-  if (a == std::numeric_limits<long long>::min() && b == -1) {
-    throw std::overflow_error("overflow");
-  }
-  return a / b;
-}
 
-long long safe_mod(long long a, long long b) {
-  if (b == 0) {
-    throw std::runtime_error("modulo by zero");
-  }
-  if (a == std::numeric_limits<long long>::min() && b == -1) {
+  if (data.empty()) {
+    std::cout << 0 << "\n";
     return 0;
   }
-  long long res = a % b;
-  if (res < 0) {
-    res += (b > 0 ? b : -b);
+
+  for (auto it = data.begin(); it != data.end(); ++it) {
+    std::cout << (*it).first << " ";
   }
-  return res;
-}
+  std::cout << "\n";
 
-bool is_number(const std::string& s, long long& val) {
-  if (s.empty()) return false;
-  try {
-    size_t idx = 0;
-    val = std::stoll(s, &idx);
-    return idx == s.size();
-  } catch (...) {
-    return false;
-  }
-}
+  List<typename List<int>::iterator> its;
+  List<typename List<int>::iterator> ends;
 
-int main(int argc, char* argv[]) {
-  std::istream* input = &std::cin;
-  std::ifstream file;
-
-  if (argc == 2) {
-    file.open(argv[1]);
-    if (!file.is_open()) {
-      std::cerr << "Error: Cannot open file\n";
-      return 1;
-    }
-    input = &file;
-  } else if (argc > 2) {
-    std::cerr << "Error: Too many arguments\n";
-    return 1;
+  for (auto it = data.begin(); it != data.end(); ++it) {
+    its.push_back((*it).second.begin());
+    ends.push_back((*it).second.end());
   }
 
-  loseva::List<long long> results;
-  std::string line;
+  List<int> results;
 
-  while (std::getline(*input, line)) {
-    bool only_whitespace = true;
-    for (char c : line) {
-      if (!std::isspace(static_cast<unsigned char>(c))) {
-        only_whitespace = false;
-        break;
+  bool done = false;
+  while (!done) {
+    done = true;
+
+    auto it_it = its.begin();
+    auto it_end = ends.begin();
+
+    int res = 0;
+    bool has = false;
+
+    while (it_it != its.end()) {
+      if ((*it_it) != *it_end) {
+        int val = **it_it;
+        std::cout << val << " ";
+
+        res |= val;
+        has = true;
+
+        ++((*it_it));
+        done = false;
       }
-    }
-    if (only_whitespace) {
-      continue;
-    }
-
-    std::stringstream ss(line);
-    std::string token_str;
-
-    loseva::List<char> op_stack;
-    loseva::List<PostfixToken> postfix;
-
-    bool expect_operand = true;
-    bool valid = true;
-
-    while (ss >> token_str) {
-      if (token_str == "(") {
-        if (!expect_operand) {
-          valid = false;
-          break;
-        }
-        op_stack.push_back('(');
-      } else if (token_str == ")") {
-        if (expect_operand) {
-          valid = false;
-          break;
-        }
-        bool found_lparen = false;
-        while (!op_stack.empty()) {
-          char top_op = op_stack.back();
-          op_stack.pop_back();
-          if (top_op == '(') {
-            found_lparen = true;
-            break;
-          }
-          postfix.push_back({TOK_OPERATOR, 0, top_op});
-        }
-        if (!found_lparen) {
-          valid = false;
-          break;
-        }
-      } else if (token_str == "+" || token_str == "-" || token_str == "*" || token_str == "/" || token_str == "%") {
-        if (expect_operand) {
-          valid = false;
-          break;
-        }
-        char current_op = token_str[0];
-        int current_prec = (current_op == '+' || current_op == '-') ? 1 : 2;
-        
-        while (!op_stack.empty()) {
-          char top_op = op_stack.back();
-          if (top_op == '(') {
-            break;
-          }
-          int top_prec = (top_op == '+' || top_op == '-') ? 1 : 2;
-          if (top_prec >= current_prec) {
-            postfix.push_back({TOK_OPERATOR, 0, top_op});
-            op_stack.pop_back();
-          } else {
-            break;
-          }
-        }
-        op_stack.push_back(current_op);
-        expect_operand = true;
-      } else {
-        long long val = 0;
-        if (!is_number(token_str, val)) {
-          valid = false;
-          break;
-        }
-        if (!expect_operand) {
-          valid = false;
-          break;
-        }
-        postfix.push_back({TOK_NUMBER, val, '\0'});
-        expect_operand = false;
-      }
+      ++it_it;
+      ++it_end;
     }
 
-    if (!valid || expect_operand) {
-      std::cerr << "Error: Invalid syntax\n";
-      return 1;
+    if (!done) {
+      std::cout << "\n";
+      if (has) results.push_back(res);
     }
-
-    while (!op_stack.empty()) {
-      char top_op = op_stack.back();
-      op_stack.pop_back();
-      if (top_op == '(') {
-        std::cerr << "Error: Mismatched parentheses\n";
-        return 1;
-      }
-      postfix.push_back({TOK_OPERATOR, 0, top_op});
-    }
-
-    loseva::List<long long> eval_stack;
-    for (auto it = postfix.begin(); it != postfix.end(); ++it) {
-      PostfixToken tok = *it;
-      if (tok.type == TOK_NUMBER) {
-        eval_stack.push_back(tok.value);
-      } else {
-        if (eval_stack.empty()) {
-          std::cerr << "Error: Invalid evaluation\n";
-          return 1;
-        }
-        long long b = eval_stack.back();
-        eval_stack.pop_back();
-        
-        if (eval_stack.empty()) {
-          std::cerr << "Error: Invalid evaluation\n";
-          return 1;
-        }
-        long long a = eval_stack.back();
-        eval_stack.pop_back();
-        
-        long long res = 0;
-        try {
-          if (tok.op == '+') res = safe_add(a, b);
-          else if (tok.op == '-') res = safe_sub(a, b);
-          else if (tok.op == '*') res = safe_mul(a, b);
-          else if (tok.op == '/') res = safe_div(a, b);
-          else if (tok.op == '%') res = safe_mod(a, b);
-        } catch (const std::exception& e) {
-          std::cerr << "Error: " << e.what() << "\n";
-          return 1;
-        }
-        eval_stack.push_back(res);
-      }
-    }
-
-    if (eval_stack.empty()) {
-      std::cerr << "Error: Invalid result\n";
-      return 1;
-    }
-    long long final_res = eval_stack.back();
-    eval_stack.pop_back();
-    if (!eval_stack.empty()) {
-      std::cerr << "Error: Invalid final state\n";
-      return 1;
-    }
-
-    results.push_front(final_res);
   }
 
-  if (!results.empty()) {
-    for (auto it = results.begin(); it != results.end(); ++it) {
-      if (it != results.begin()) {
-        std::cout << " ";
-      }
-      std::cout << *it;
-    }
-    std::cout << "\n";
+  for (auto it = results.begin(); it != results.end(); ++it) {
+    std::cout << *it << " ";
   }
+  std::cout << "\n";
 
   return 0;
 }
