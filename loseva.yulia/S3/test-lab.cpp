@@ -1,5 +1,5 @@
 #define BOOST_TEST_MODULE lab_s3_tests
-#include <boost/test/unit_test.hpp>
+#include <boost/test/included/unit_test.hpp>
 
 #include <cstddef>
 #include <sstream>
