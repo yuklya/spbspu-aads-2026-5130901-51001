@@ -8,8 +8,6 @@
 
 namespace loseva {
 
-using EdgeKey = std::pair< std::string, std::string >;
-
 class XxHash32 {
 public:
   static constexpr std::uint32_t PRIME1 = 2654435761U;
@@ -18,7 +16,9 @@ public:
   static constexpr std::uint32_t PRIME4 =  668265263U;
   static constexpr std::uint32_t PRIME5 =  374761393U;
 
-  std::size_t operator()(const void * data, std::size_t len,
+  std::size_t operator()(
+    const void * data,
+    std::size_t len,
     std::uint32_t seed = 0) const
   {
     const auto * p = static_cast< const std::uint8_t * >(data);
@@ -43,8 +43,7 @@ public:
         p += 4;
       } while (p <= limit);
 
-      h32 = rotl(v1, 1) + rotl(v2, 7)
-        + rotl(v3, 12) + rotl(v4, 18);
+      h32 = rotl(v1, 1) + rotl(v2, 7) + rotl(v3, 12) + rotl(v4, 18);
     } else {
       h32 = seed + PRIME5;
     }
@@ -97,31 +96,33 @@ private:
 struct StringXxHash {
   std::size_t operator()(const std::string & s) const
   {
-    XxHash32 h;
-    return h(s.data(), s.size());
+    XxHash32 hasher;
+    return hasher(s.data(), s.size());
   }
 
-  std::size_t hashBytes(const unsigned char * data, std::size_t len) const
+  std::size_t hashBytes(const unsigned char * bytes, std::size_t len) const
   {
-    XxHash32 h;
-    return h(data, len);
+    XxHash32 hasher;
+    return hasher(bytes, len);
   }
 };
+
+using EdgeKey = std::pair< std::string, std::string >;
 
 struct PairStringXxHash {
   std::size_t operator()(const EdgeKey & p) const
   {
-    XxHash32 h;
-    const std::size_t h1 = h(p.first.data(), p.first.size());
-    const std::size_t h2 = h(p.second.data(), p.second.size());
-    return h1 ^ (h2 + 0x9e3779b9u + (h1 << 6) + (h1 >> 2));
+    StringXxHash stringHasher;
+    const std::size_t h1 = stringHasher(p.first);
+    const std::size_t h2 = stringHasher(p.second);
+    return h1 ^ (h2 + 0x9e3779b9 + (h1 << 6) + (h1 >> 2));
   }
 };
 
 struct PairStringEqual {
-  bool operator()(const EdgeKey & a, const EdgeKey & b) const
+  bool operator()(const EdgeKey & lhs, const EdgeKey & rhs) const
   {
-    return a.first == b.first && a.second == b.second;
+    return lhs.first == rhs.first && lhs.second == rhs.second;
   }
 };
 
