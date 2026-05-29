@@ -72,8 +72,7 @@ bool Graph::hasEdge(const std::string & from, const std::string & to) const
 
 std::vector< std::string > Graph::sortedVertices() const
 {
-  std::vector< std::string > result(vertices_.begin(), vertices_.end());
-  return result;
+  return std::vector< std::string >(vertices_.begin(), vertices_.end());
 }
 
 std::vector< std::pair< std::string, std::vector< unsigned int > > >
@@ -114,6 +113,21 @@ Graph::inbound(const std::string & v) const
       return a.first < b.first;
     });
   return result;
+}
+
+const EdgeTable & Graph::edges() const
+{
+  return edges_;
+}
+
+const VertexSet & Graph::vertices() const
+{
+  return vertices_;
+}
+
+std::size_t Graph::edgeCapacity() const
+{
+  return edges_.capacity();
 }
 
 }
