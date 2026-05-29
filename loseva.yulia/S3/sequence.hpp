@@ -153,25 +153,17 @@ public:
     return data_ + size_;
   }
 
+  void swap(Sequence & other) noexcept
+  {
+    std::swap(data_, other.data_);
+    std::swap(size_, other.size_);
+    std::swap(capacity_, other.capacity_);
+  }
+
 private:
   T * data_;
   size_type size_;
   size_type capacity_;
-
-  void swap(Sequence & other) noexcept
-  {
-    T * tmpData = data_;
-    data_ = other.data_;
-    other.data_ = tmpData;
-
-    size_type tmpSize = size_;
-    size_ = other.size_;
-    other.size_ = tmpSize;
-
-    size_type tmpCap = capacity_;
-    capacity_ = other.capacity_;
-    other.capacity_ = tmpCap;
-  }
 };
 
 }
