@@ -73,7 +73,7 @@ void handleMerge(GraphTable & table, std::istream & is, std::ostream & os)
   }
   const auto & graph1 = table.at(g1);
   const auto & graph2 = table.at(g2);
-  
+
   Graph merged;
   for (const auto & v : graph1.sortedVertices()) {
     merged.addVertex(v);
@@ -81,7 +81,7 @@ void handleMerge(GraphTable & table, std::istream & is, std::ostream & os)
   for (const auto & v : graph2.sortedVertices()) {
     merged.addVertex(v);
   }
-  
+
   for (const auto & v : graph1.sortedVertices()) {
     for (const auto & edge : graph1.outbound(v)) {
       for (unsigned int w : edge.second) {
@@ -96,7 +96,7 @@ void handleMerge(GraphTable & table, std::istream & is, std::ostream & os)
       }
     }
   }
-  
+
   table.insert_or_assign(target, merged);
 }
 
@@ -126,15 +126,15 @@ void handleExtract(GraphTable & table, std::istream & is, std::ostream & os)
     }
     allowedVertices.push_back(v);
   }
-  
+
   Graph extracted;
   for (const auto & v : allowedVertices) {
     extracted.addVertex(v);
   }
-  
+
   for (const auto & v : allowedVertices) {
     for (const auto & edge : srcGraph.outbound(v)) {
-      if (std::find(allowedVertices.begin(), allowedVertices.end(), edge.first) 
+      if (std::find(allowedVertices.begin(), allowedVertices.end(), edge.first)
           != allowedVertices.end()) {
         for (unsigned int w : edge.second) {
           extracted.addEdge(v, edge.first, w);
@@ -142,7 +142,7 @@ void handleExtract(GraphTable & table, std::istream & is, std::ostream & os)
       }
     }
   }
-  
+
   table.insert_or_assign(target, extracted);
 }
 

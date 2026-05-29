@@ -38,11 +38,11 @@ struct ConstantHash {
   }
 };
 
-using CollisionTable = loseva::HashTable<
-  std::string, int, ConstantHash, loseva::StringEqual >;
+using CollisionTable = lab::HashTable<
+  std::string, int, ConstantHash, lab::StringEqual >;
 
-using StringTable = loseva::HashTable<
-  std::string, int, loseva::StringXxHash, loseva::StringEqual >;
+using StringTable = lab::HashTable<
+  std::string, int, lab::StringXxHash, lab::StringEqual >;
 
 }
 
@@ -232,8 +232,8 @@ BOOST_AUTO_TEST_CASE(hash_table_tombstone_iterator_and_rehash)
 
   const CollisionTable & constTable = table;
   std::size_t constVisited = 0;
-  for (CollisionTable::const_iterator it = constTable.begin(); 
-       it != constTable.end(); ++it) {
+  for (CollisionTable::const_iterator it = constTable.begin();
+    it != constTable.end(); ++it) {
     BOOST_TEST(it->key() != "b");
     ++constVisited;
   }
@@ -244,7 +244,6 @@ BOOST_AUTO_TEST_CASE(hash_table_tombstone_iterator_and_rehash)
   BOOST_TEST(table.has("c"));
   BOOST_TEST(table.has("d"));
   BOOST_TEST(!table.has("b"));
-
   table.add("e", 5);
   BOOST_TEST(table.has("e"));
 }
@@ -278,4 +277,317 @@ BOOST_AUTO_TEST_CASE(hash_table_copy_move_and_clear)
   CollisionTable moved(std::move(copy));
   BOOST_TEST(moved.has("a"));
   BOOST_TEST(moved.has("b"));
+
+  CollisionTable moveAssigned(17);
+  moveAssigned = std::move(moved);
+  BOOST_TEST(moveAssigned.has("a"));
+  BOOST_TEST(moveAssigned.has("b"));
+
+  moveAssigned.clear();
+  BOOST_TEST(moveAssigned.size() == 0u);
+  BOOST_TEST(!moveAssigned.has("a"));
+  BOOST_TEST(!moveAssigned.has("b"));
+}
+
+BOOST_AUTO_TEST_CASE(hash_table_size_tracks_correctly)
+{
+  StringTable table(32);
+  BOOST_TEST(table.size() == 0u);
+  table.add("x", 1);
+  BOOST_TEST(table.size() == 1u);
+  table.add("y", 2);
+  BOOST_TEST(table.size() == 2u);
+  table.drop("x");
+  BOOST_TEST(table.size() == 1u);
+  table.clear();
+  BOOST_TEST(table.size() == 0u);
+}
+
+BOOST_AUTO_TEST_CASE(graph_add_and_query_edges)
+{
+  loseva::Graph g;
+  g.addEdge("a", "b", 40);
+  g.addEdge("b", "c", 50);
+  g.addEdge("c", "a", 30);
+  g.addEdge("c", "b", 20);
+
+  BOOST_TEST(g.hasVertex("a"));
+  BOOST_TEST(g.hasVertex("b"));
+  BOOST_TEST(g.hasVertex("c"));
+  BOOST_TEST(!g.hasVertex("z"));
+
+  BOOST_TEST(g.hasEdge("a", "b"));
+  BOOST_TEST(!g.hasEdge("a", "c"));
+
+  const auto out = g.outbound("c");
+  BOOST_TEST(out.size() == 2u);
+  BOOST_TEST(out[0].first == "a");
+  BOOST_TEST(out[0].second[0] == 30u);
+  BOOST_TEST(out[1].first == "b");
+  BOOST_TEST(out[1].second[0] == 20u);
+}
+
+BOOST_AUTO_TEST_CASE(graph_inbound_edges)
+{
+  loseva::Graph g;
+  g.addEdge("a", "b", 1);
+  g.addEdge("b", "b", 2);
+  g.addEdge("a", "c", 3);
+
+  const auto inb = g.inbound("b");
+  BOOST_TEST(inb.size() == 2u);
+  BOOST_TEST(inb[0].first == "a");
+  BOOST_TEST(inb[0].second[0] == 1u);
+  BOOST_TEST(inb[1].first == "b");
+  BOOST_TEST(inb[1].second[0] == 2u);
+}
+
+BOOST_AUTO_TEST_CASE(graph_multiple_edges_same_pair)
+{
+  loseva::Graph g;
+  g.addEdge("a", "b", 5);
+  g.addEdge("a", "b", 3);
+  g.addEdge("a", "b", 7);
+
+  const auto out = g.outbound("a");
+  BOOST_TEST(out.size() == 1u);
+  BOOST_TEST(out[0].first == "b");
+  BOOST_TEST(out[0].second.size() == 3u);
+  BOOST_TEST(out[0].second[0] == 3u);
+  BOOST_TEST(out[0].second[1] == 5u);
+  BOOST_TEST(out[0].second[2] == 7u);
+}
+
+BOOST_AUTO_TEST_CASE(graph_remove_edge)
+{
+  loseva::Graph g;
+  g.addEdge("a", "b", 10);
+  g.addEdge("a", "b", 20);
+  BOOST_TEST(g.removeEdge("a", "b", 10));
+  BOOST_TEST(!g.removeEdge("a", "b", 99));
+
+  const auto out = g.outbound("a");
+  BOOST_TEST(out[0].second.size() == 1u);
+  BOOST_TEST(out[0].second[0] == 20u);
+}
+
+BOOST_AUTO_TEST_CASE(graph_sorted_vertices)
+{
+  loseva::Graph g;
+  g.addEdge("c", "a", 1);
+  g.addEdge("b", "c", 2);
+  g.addVertex("z");
+
+  const auto verts = g.sortedVertices();
+  BOOST_TEST(verts.size() == 4u);
+  BOOST_TEST(verts[0] == "a");
+  BOOST_TEST(verts[1] == "b");
+  BOOST_TEST(verts[2] == "c");
+  BOOST_TEST(verts[3] == "z");
+}
+
+BOOST_AUTO_TEST_CASE(graph_zero_weight_edge)
+{
+  loseva::Graph g;
+  g.addEdge("a", "b", 0);
+  BOOST_TEST(g.hasEdge("a", "b"));
+  const auto out = g.outbound("a");
+  BOOST_TEST(out[0].second[0] == 0u);
+}
+
+namespace {
+
+loseva::GraphTable buildSampleTable()
+{
+  loseva::GraphTable table(64);
+
+  loseva::Graph gr1(32);
+  gr1.addEdge("a", "b", 40);
+  gr1.addEdge("b", "c", 50);
+  gr1.addEdge("c", "a", 30);
+  gr1.addEdge("c", "b", 20);
+  table.add("gr1", gr1);
+
+  loseva::Graph gr2(32);
+  gr2.addEdge("a", "b", 1);
+  gr2.addEdge("b", "b", 2);
+  gr2.addEdge("a", "c", 3);
+  table.add("gr2", gr2);
+
+  return table;
+}
+
+}
+
+BOOST_AUTO_TEST_CASE(cmd_graphs_sorted_output)
+{
+  loseva::GraphTable table = buildSampleTable();
+  std::istringstream in("graphs\n");
+  std::ostringstream out;
+  loseva::runCommands(table, in, out);
+  BOOST_TEST(out.str() == "gr1\ngr2\n");
+}
+
+BOOST_AUTO_TEST_CASE(cmd_vertexes_valid_and_invalid)
+{
+  loseva::GraphTable table = buildSampleTable();
+  std::istringstream in("vertexes gr1\nvertexes gr3\nvertexes gr2\n");
+  std::ostringstream out;
+  loseva::runCommands(table, in, out);
+  const std::string expected =
+    "a\nb\nc\n"
+    "<INVALID COMMAND>\n"
+    "a\nb\nc\n";
+  BOOST_TEST(out.str() == expected);
+}
+
+BOOST_AUTO_TEST_CASE(cmd_outbound_valid_and_invalid)
+{
+  loseva::GraphTable table = buildSampleTable();
+  std::istringstream in("outbound gr2 a\noutbound gr3 b\noutbound gr1 c\n");
+  std::ostringstream out;
+  loseva::runCommands(table, in, out);
+  const std::string expected =
+    "b 1\nc 3\n"
+    "<INVALID COMMAND>\n"
+    "a 30\nb 20\n";
+  BOOST_TEST(out.str() == expected);
+}
+
+BOOST_AUTO_TEST_CASE(cmd_inbound_valid_and_invalid)
+{
+  loseva::GraphTable table = buildSampleTable();
+  std::istringstream in("inbound gr2 b\ninbound gr3 a\ninbound gr1 b\n");
+  std::ostringstream out;
+  loseva::runCommands(table, in, out);
+  const std::string expected =
+    "a 1\nb 2\n"
+    "<INVALID COMMAND>\n"
+    "a 40\nc 20\n";
+  BOOST_TEST(out.str() == expected);
+}
+
+BOOST_AUTO_TEST_CASE(cmd_bind_adds_edge_and_vertex)
+{
+  loseva::GraphTable table = buildSampleTable();
+  std::istringstream in(
+    "bind gr2 b c 100\n"
+    "bind gr2 b d 200\n"
+    "vertexes gr2\n"
+    "outbound gr2 b\n");
+  std::ostringstream out;
+  loseva::runCommands(table, in, out);
+  const std::string expected =
+    "a\nb\nc\nd\n"
+    "b 2\nc 100\nd 200\n";
+  BOOST_TEST(out.str() == expected);
+}
+
+BOOST_AUTO_TEST_CASE(cmd_cut_removes_specific_weight)
+{
+  loseva::GraphTable table = buildSampleTable();
+  std::istringstream in(
+    "cut gr2 b b 1\n"
+    "cut gr2 b b 2\n"
+    "inbound gr2 b\n");
+  std::ostringstream out;
+  loseva::runCommands(table, in, out);
+  const std::string expected =
+    "<INVALID COMMAND>\n"
+    "a 1\n";
+  BOOST_TEST(out.str() == expected);
+}
+
+BOOST_AUTO_TEST_CASE(cmd_create_new_and_duplicate)
+{
+  loseva::GraphTable table = buildSampleTable();
+  std::istringstream in(
+    "create gr3\n"
+    "create gr3\n"
+    "graphs\n");
+  std::ostringstream out;
+  loseva::runCommands(table, in, out);
+  const std::string expected =
+    "<INVALID COMMAND>\n"
+    "gr1\ngr2\ngr3\n";
+  BOOST_TEST(out.str() == expected);
+}
+
+BOOST_AUTO_TEST_CASE(cmd_create_with_vertices)
+{
+  loseva::GraphTable table = buildSampleTable();
+  std::istringstream in(
+    "create gr3 3 x y z\n"
+    "vertexes gr3\n");
+  std::ostringstream out;
+  loseva::runCommands(table, in, out);
+  BOOST_TEST(out.str() == "x\ny\nz\n");
+}
+
+BOOST_AUTO_TEST_CASE(cmd_merge_combines_graphs)
+{
+  loseva::GraphTable table = buildSampleTable();
+  std::istringstream in(
+    "merge gr3 gr2 gr2\n"
+    "inbound gr3 b\n");
+  std::ostringstream out;
+  loseva::runCommands(table, in, out);
+  const std::string expected = "a 1 1\nb 2 2\n";
+  BOOST_TEST(out.str() == expected);
+}
+
+BOOST_AUTO_TEST_CASE(cmd_merge_invalid_missing_source)
+{
+  loseva::GraphTable table = buildSampleTable();
+  std::istringstream in("merge gr3 gr2 noSuchGraph\n");
+  std::ostringstream out;
+  loseva::runCommands(table, in, out);
+  BOOST_TEST(out.str() == "<INVALID COMMAND>\n");
+}
+
+BOOST_AUTO_TEST_CASE(cmd_merge_invalid_target_exists)
+{
+  loseva::GraphTable table = buildSampleTable();
+  std::istringstream in("merge gr1 gr1 gr2\n");
+  std::ostringstream out;
+  loseva::runCommands(table, in, out);
+  BOOST_TEST(out.str() == "<INVALID COMMAND>\n");
+}
+
+BOOST_AUTO_TEST_CASE(cmd_extract_subgraph)
+{
+  loseva::GraphTable table = buildSampleTable();
+  std::istringstream in(
+    "extract gr3 gr2 2 a c\n"
+    "outbound gr3 a\n");
+  std::ostringstream out;
+  loseva::runCommands(table, in, out);
+  BOOST_TEST(out.str() == "c 3\n");
+}
+
+BOOST_AUTO_TEST_CASE(cmd_extract_invalid_missing_vertex)
+{
+  loseva::GraphTable table = buildSampleTable();
+  std::istringstream in("extract gr3 gr2 2 a z\n");
+  std::ostringstream out;
+  loseva::runCommands(table, in, out);
+  BOOST_TEST(out.str() == "<INVALID COMMAND>\n");
+}
+
+BOOST_AUTO_TEST_CASE(cmd_unknown_command)
+{
+  loseva::GraphTable table = buildSampleTable();
+  std::istringstream in("fly\n");
+  std::ostringstream out;
+  loseva::runCommands(table, in, out);
+  BOOST_TEST(out.str() == "<INVALID COMMAND>\n");
+}
+
+BOOST_AUTO_TEST_CASE(cmd_empty_lines_ignored)
+{
+  loseva::GraphTable table = buildSampleTable();
+  std::istringstream in("\n\ngraphs\n\n");
+  std::ostringstream out;
+  loseva::runCommands(table, in, out);
+  BOOST_TEST(out.str() == "gr1\ngr2\n");
 }
