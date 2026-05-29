@@ -10,11 +10,6 @@
 
 namespace loseva {
 
-class TableFullException : public std::overflow_error {
-public:
-  TableFullException() : std::overflow_error("Hash table is full") {}
-};
-
 template< class Key, class Value, class Hash, class Equal >
 class HashTable {
 public:
@@ -64,25 +59,25 @@ public:
 
   class Entry {
   public:
+    const Key & first;
+    Value & second;
+
     Entry(const Key & k, Value & v):
+      first(k),
+      second(v),
       key_(k),
-      value_(v),
-      first(key_),
-      second(value_)
+      value_(v)
     {}
 
     const Key & key() const
     {
-      return key_;
+      return first;
     }
 
     Value & value() const
     {
-      return value_;
+      return second;
     }
-
-    const Key & first;
-    Value & second;
 
   private:
     const Key & key_;
@@ -91,25 +86,25 @@ public:
 
   class ConstEntry {
   public:
+    const Key & first;
+    const Value & second;
+
     ConstEntry(const Key & k, const Value & v):
+      first(k),
+      second(v),
       key_(k),
-      value_(v),
-      first(key_),
-      second(value_)
+      value_(v)
     {}
 
     const Key & key() const
     {
-      return key_;
+      return first;
     }
 
     const Value & value() const
     {
-      return value_;
+      return second;
     }
-
-    const Key & first;
-    const Value & second;
 
   private:
     const Key & key_;
@@ -274,7 +269,7 @@ public:
     }
     const size_type cap = slots_.size();
     if (cap == 0) {
-      throw TableFullException();
+      throw std::overflow_error("Hash table is full");
     }
     const size_type h = hasher_(k) % cap;
     size_type tombstoneIdx = cap;
@@ -300,7 +295,7 @@ public:
       ++size_;
       return;
     }
-    throw TableFullException();
+    throw std::overflow_error("Hash table is full");
   }
 
   void insert_or_assign(const Key & k, const Value & v)
