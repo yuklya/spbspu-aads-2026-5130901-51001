@@ -188,7 +188,8 @@ void runCommands(GraphTable & table, std::istream & in, std::ostream & out)
       try {
         std::size_t processed = 0;
         const long long count = std::stoll(tokens[2], &processed);
-        if (processed != tokens[2].size() || count < 0 || tokens.size() != 3 + count) {
+        if (processed != tokens[2].size() || count < 0 ||
+            tokens.size() != 3 + count) {
           out << "<INVALID COMMAND>\n";
           continue;
         }
@@ -255,7 +256,8 @@ void runCommands(GraphTable & table, std::istream & in, std::ostream & out)
       try {
         std::size_t processed = 0;
         const long long count = std::stoll(tokens[3], &processed);
-        if (processed != tokens[3].size() || count < 0 || tokens.size() != 4 + count) {
+        if (processed != tokens[3].size() || count < 0 ||
+            tokens.size() != 4 + count) {
           out << "<INVALID COMMAND>\n";
           continue;
         }
