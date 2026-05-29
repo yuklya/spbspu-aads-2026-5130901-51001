@@ -14,16 +14,16 @@ int main(int argc, char * argv[])
 
   const std::string filename(argv[1]);
 
-  lab::GraphTable table(64);
+  loseva::GraphTable table(64);
   try {
-    lab::parseGraphFile(filename, table);
+    loseva::parseGraphFile(filename, table);
   } catch (const std::exception & e) {
     std::cerr << "Error reading file: " << e.what() << "\n";
     return 1;
   }
 
   try {
-    lab::runCommands(table, std::cin, std::cout);
+    loseva::runCommands(table, std::cin, std::cout);
   } catch (const std::exception & e) {
     std::cerr << "Internal error: " << e.what() << "\n";
     return 2;
