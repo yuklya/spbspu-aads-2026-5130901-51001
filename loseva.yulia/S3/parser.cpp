@@ -7,7 +7,7 @@
 
 namespace loseva {
 
-void loseva::parseGraphFile(const std::string & filename, GraphTable & table)
+void parseGraphFile(const std::string & filename, GraphTable & table)
 {
   std::ifstream file(filename);
   if (!file.is_open()) {
