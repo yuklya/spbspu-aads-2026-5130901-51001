@@ -32,14 +32,10 @@ public:
   Graph & operator=(Graph &&) = default;
 
   void addVertex(const std::string & v);
-  void addEdge(
-    const std::string & from,
-    const std::string & to,
+  void addEdge(const std::string & from, const std::string & to,
     unsigned int weight);
 
-  bool removeEdge(
-    const std::string & from,
-    const std::string & to,
+  bool removeEdge(const std::string & from, const std::string & to,
     unsigned int weight);
 
   bool hasVertex(const std::string & v) const;
@@ -52,6 +48,11 @@ public:
 
   std::vector< std::pair< std::string, std::vector< unsigned int > > >
     inbound(const std::string & v) const;
+
+  const EdgeTable & edges() const;
+  const VertexSet & vertices() const;
+
+  std::size_t edgeCapacity() const;
 
 private:
   EdgeTable edges_;
