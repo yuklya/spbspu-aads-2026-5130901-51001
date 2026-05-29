@@ -1,4 +1,4 @@
-лл#ifndef LIST_HPP
+#ifndef LIST_HPP
 #define LIST_HPP
 
 #include "list_impl.hpp"
