@@ -1,332 +1,296 @@
 #include "commands.hpp"
+#include "graph.hpp"
+#include "hash_table.hpp"
 
-#include <algorithm>
-#include <cctype>
-#include <limits>
+#include <iostream>
+#include <string>
 #include <sstream>
 #include <vector>
+#include <algorithm>
 
 namespace loseva {
 
 void runCommands(GraphTable & table, std::istream & in, std::ostream & out)
 {
-  std::string line;
+  std::string line = "";
   while (std::getline(in, line)) {
     if (line.empty()) {
       continue;
     }
-
-    std::istringstream iss(line);
-    std::vector< std::string > tokens;
-    std::string token;
-    while (iss >> token) {
-      tokens.push_back(token);
-    }
-
-    if (tokens.empty()) {
+    std::istringstream ss(line);
+    std::string cmd = "";
+    if (!(ss >> cmd)) {
       continue;
     }
 
-    const std::string cmd = tokens[0];
-
-    if (cmd == "create") {
-      if (tokens.size() != 2) {
-        out << "<INVALID COMMAND>\n";
-        continue;
-      }
-      const std::string graphName = tokens[1];
-      if (table.has(graphName)) {
-        out << "<INVALID COMMAND>\n";
-        continue;
-      }
-      bool inserted = false;
-      while (!inserted) {
-        try {
-          table.add(graphName, Graph());
-          inserted = true;
-        } catch (const TableFullException &) {
-          table.rehash(table.capacity() * 2 + 1);
-        }
-      }
-    } else if (cmd == "graphs") {
-      if (tokens.size() != 1) {
+    if (cmd == "graphs") {
+      std::string extra = "";
+      if (ss >> extra) {
         out << "<INVALID COMMAND>\n";
         continue;
       }
       std::vector< std::string > names;
-      for (const auto & entry : table) {
-        names.push_back(entry.first);
+      for (auto it = table.begin(); it != table.end(); ++it) {
+        names.push_back((*it).first);
       }
       std::sort(names.begin(), names.end());
-      if (names.empty()) {
-        out << "\n";
-      } else {
-        for (const auto & name : names) {
-          out << name << "\n";
+      for (const auto & name : names) {
+        out << name << "\n";
+      }
+    }
+    else if (cmd == "vertexes") {
+      std::string graphName = "";
+      if (!(ss >> graphName)) {
+        out << "<INVALID COMMAND>\n";
+        continue;
+      }
+      std::string extra = "";
+      if ((ss >> extra) || !table.has(graphName)) {
+        out << "<INVALID COMMAND>\n";
+        continue;
+      }
+      const Graph & g = table.get(graphName);
+      const std::vector< std::string > verts = g.sortedVertices();
+      for (const auto & v : verts) {
+        out << v << "\n";
+      }
+    }
+    else if (cmd == "bind") {
+      std::string graphName = "";
+      std::string from = "";
+      std::string to = "";
+      unsigned int weight = 0;
+      if (!(ss >> graphName >> from >> to >> weight)) {
+        out << "<INVALID COMMAND>\n";
+        continue;
+      }
+      std::string extra = "";
+      if ((ss >> extra) || !table.has(graphName)) {
+        out << "<INVALID COMMAND>\n";
+        continue;
+      }
+      Graph & g = table.get(graphName);
+      g.addEdge(from, to, weight);
+    }
+    else if (cmd == "cut") {
+      std::string graphName = "";
+      std::string from = "";
+      std::string to = "";
+      unsigned int weight = 0;
+      if (!(ss >> graphName >> from >> to >> weight)) {
+        out << "<INVALID COMMAND>\n";
+        continue;
+      }
+      std::string extra = "";
+      if ((ss >> extra) || !table.has(graphName)) {
+        out << "<INVALID COMMAND>\n";
+        continue;
+      }
+      Graph & g = table.get(graphName);
+      if (!g.hasVertex(from) || !g.hasVertex(to) || !g.removeEdge(from, to, weight)) {
+        out << "<INVALID COMMAND>\n";
+        continue;
+      }
+    }
+    else if (cmd == "inbound") {
+      std::string graphName = "";
+      std::string vertexName = "";
+      if (!(ss >> graphName >> vertexName)) {
+        out << "<INVALID COMMAND>\n";
+        continue;
+      }
+      std::string extra = "";
+      if ((ss >> extra) || !table.has(graphName)) {
+        out << "<INVALID COMMAND>\n";
+        continue;
+      }
+      const Graph & g = table.get(graphName);
+      if (!g.hasVertex(vertexName)) {
+        out << "<INVALID COMMAND>\n";
+        continue;
+      }
+      const auto edges = g.inbound(vertexName);
+      for (const auto & edge : edges) {
+        out << edge.first;
+        for (const unsigned int w : edge.second) {
+          out << " " << w;
         }
-      }
-    } else if (cmd == "vertexes" || cmd == "vertices") {
-      if (tokens.size() != 2) {
-        out << "<INVALID COMMAND>\n";
-        continue;
-      }
-      const std::string graphName = tokens[1];
-      if (!table.has(graphName)) {
-        out << "<INVALID COMMAND>\n";
-        continue;
-      }
-      const auto & g = table.at(graphName);
-      const auto verts = g.sortedVertices();
-      if (verts.empty()) {
-        out << "\n";
-      } else {
-        for (const auto & v : verts) {
-          out << v << "\n";
-        }
-      }
-    } else if (cmd == "bind") {
-      if (tokens.size() != 5) {
-        out << "<INVALID COMMAND>\n";
-        continue;
-      }
-      const std::string graphName = tokens[1];
-      const std::string from = tokens[2];
-      const std::string to = tokens[3];
-      const std::string weightStr = tokens[4];
-
-      bool isNum = !weightStr.empty();
-      for (const char c : weightStr) {
-        if (!std::isdigit(c)) {
-          isNum = false;
-        }
-      }
-      if (!isNum) {
-        out << "<INVALID COMMAND>\n";
-        continue;
-      }
-
-      const unsigned long long wVal = std::stoull(weightStr);
-      if (wVal > std::numeric_limits< unsigned int >::max()) {
-        out << "<INVALID COMMAND>\n";
-        continue;
-      }
-      const unsigned int weight = static_cast< unsigned int >(wVal);
-
-      if (!table.has(graphName)) {
-        out << "<INVALID COMMAND>\n";
-        continue;
-      }
-      table.at(graphName).addEdge(from, to, weight);
-    } else if (cmd == "cut") {
-      if (tokens.size() != 5) {
-        out << "<INVALID COMMAND>\n";
-        continue;
-      }
-      const std::string graphName = tokens[1];
-      const std::string from = tokens[2];
-      const std::string to = tokens[3];
-      const std::string weightStr = tokens[4];
-
-      bool isNum = !weightStr.empty();
-      for (const char c : weightStr) {
-        if (!std::isdigit(c)) {
-          isNum = false;
-        }
-      }
-      if (!isNum) {
-        out << "<INVALID COMMAND>\n";
-        continue;
-      }
-
-      const unsigned long long wVal = std::stoull(weightStr);
-      if (wVal > std::numeric_limits< unsigned int >::max()) {
-        out << "<INVALID COMMAND>\n";
-        continue;
-      }
-      const unsigned int weight = static_cast< unsigned int >(wVal);
-
-      if (!table.has(graphName)) {
-        out << "<INVALID COMMAND>\n";
-        continue;
-      }
-      if (!table.at(graphName).removeEdge(from, to, weight)) {
-        out << "<INVALID COMMAND>\n";
-        continue;
-      }
-    } else if (cmd == "outbound") {
-      if (tokens.size() != 3) {
-        out << "<INVALID COMMAND>\n";
-        continue;
-      }
-      const std::string graphName = tokens[1];
-      const std::string vertex = tokens[2];
-      if (!table.has(graphName)) {
-        out << "<INVALID COMMAND>\n";
-        continue;
-      }
-      const auto & g = table.at(graphName);
-      if (!g.hasVertex(vertex)) {
-        out << "<INVALID COMMAND>\n";
-        continue;
-      }
-      const auto adj = g.outbound(vertex);
-      bool printed = false;
-      for (const auto & p : adj) {
-        for (const unsigned int w : p.second) {
-          out << p.first << " " << w << "\n";
-          printed = true;
-        }
-      }
-      if (!printed) {
         out << "\n";
       }
-    } else if (cmd == "inbound") {
-      if (tokens.size() != 3) {
+    }
+    else if (cmd == "outbound") {
+      std::string graphName = "";
+      std::string vertexName = "";
+      if (!(ss >> graphName >> vertexName)) {
         out << "<INVALID COMMAND>\n";
         continue;
       }
-      const std::string graphName = tokens[1];
-      const std::string vertex = tokens[2];
-      if (!table.has(graphName)) {
+      std::string extra = "";
+      if ((ss >> extra) || !table.has(graphName)) {
         out << "<INVALID COMMAND>\n";
         continue;
       }
-      const auto & g = table.at(graphName);
-      if (!g.hasVertex(vertex)) {
+      const Graph & g = table.get(graphName);
+      if (!g.hasVertex(vertexName)) {
         out << "<INVALID COMMAND>\n";
         continue;
       }
-      const auto adj = g.inbound(vertex);
-      bool printed = false;
-      for (const auto & p : adj) {
-        for (const unsigned int w : p.second) {
-          out << p.first << " " << w << "\n";
-          printed = true;
+      const auto edges = g.outbound(vertexName);
+      for (const auto & edge : edges) {
+        out << edge.first;
+        for (const unsigned int w : edge.second) {
+          out << " " << w;
         }
-      }
-      if (!printed) {
         out << "\n";
       }
-    } else if (cmd == "merge") {
-      if (tokens.size() != 4) {
+    }
+    else if (cmd == "create") {
+      std::string graphName = "";
+      int numVertices = 0;
+      if (!(ss >> graphName >> numVertices) || numVertices < 0) {
         out << "<INVALID COMMAND>\n";
         continue;
       }
-      const std::string target = tokens[1];
-      const std::string g1 = tokens[2];
-      const std::string g2 = tokens[3];
-      if (!table.has(g1) || !table.has(g2) || table.has(target)) {
+      std::vector< std::string > verts;
+      std::string v = "";
+      bool parseError = false;
+      for (int i = 0; i < numVertices; ++i) {
+        if (!(ss >> v)) {
+          parseError = true;
+          break;
+        }
+        verts.push_back(v);
+      }
+      std::string extra = "";
+      if (parseError || (ss >> extra) || table.has(graphName)) {
         out << "<INVALID COMMAND>\n";
         continue;
       }
-      if (target == g1 || target == g2) {
+      Graph g;
+      for (const auto & vertex : verts) {
+        g.addVertex(vertex);
+      }
+      bool inserted = false;
+      while (!inserted) {
+        try {
+          table.add(graphName, g);
+          inserted = true;
+        } catch (...) {
+          table.rehash(table.capacity() * 2 + 1);
+        }
+      }
+    }
+    else if (cmd == "merge") {
+      std::string resGraph = "";
+      std::string g1 = "";
+      std::string g2 = "";
+      if (!(ss >> resGraph >> g1 >> g2)) {
         out << "<INVALID COMMAND>\n";
         continue;
       }
+      std::string extra = "";
+      if ((ss >> extra) || table.has(resGraph) || !table.has(g1) || !table.has(g2)) {
+        out << "<INVALID COMMAND>\n";
+        continue;
+      }
+      const Graph & graph1 = table.get(g1);
+      const Graph & graph2 = table.get(g2);
+      Graph resGraphObj;
 
-      Graph res;
-      auto copyG = [](const Graph & src, Graph & dest) {
-        const auto verts = src.sortedVertices();
-        for (const auto & v : verts) {
-          dest.addVertex(v);
-          const auto adj = src.outbound(v);
-          for (const auto & p : adj) {
-            for (const unsigned int w : p.second) {
-              dest.addEdge(v, p.first, w);
-            }
+      const std::vector< std::string > verts1 = graph1.sortedVertices();
+      for (const auto & v : verts1) {
+        resGraphObj.addVertex(v);
+        const auto edges = graph1.outbound(v);
+        for (const auto & edge : edges) {
+          for (const unsigned int w : edge.second) {
+            resGraphObj.addEdge(v, edge.first, w);
           }
         }
-      };
+      }
 
-      copyG(table.at(g1), res);
-      copyG(table.at(g2), res);
+      const std::vector< std::string > verts2 = graph2.sortedVertices();
+      for (const auto & v : verts2) {
+        resGraphObj.addVertex(v);
+        const auto edges = graph2.outbound(v);
+        for (const auto & edge : edges) {
+          for (const unsigned int w : edge.second) {
+            resGraphObj.addEdge(v, edge.first, w);
+          }
+        }
+      }
 
       bool inserted = false;
       while (!inserted) {
         try {
-          table.add(target, res);
+          table.add(resGraph, resGraphObj);
           inserted = true;
-        } catch (const TableFullException &) {
+        } catch (...) {
           table.rehash(table.capacity() * 2 + 1);
         }
       }
-    } else if (cmd == "extract") {
-      if (tokens.size() < 4) {
+    }
+    else if (cmd == "extract") {
+      std::string resGraph = "";
+      std::string srcGraph = "";
+      int numVertices = 0;
+      if (!(ss >> resGraph >> srcGraph >> numVertices) || numVertices < 0) {
         out << "<INVALID COMMAND>\n";
         continue;
       }
-      const std::string target = tokens[1];
-      const std::string source = tokens[2];
-      const std::string countStr = tokens[3];
-
-      bool isCountNum = !countStr.empty();
-      for (const char c : countStr) {
-        if (!std::isdigit(c)) {
-          isCountNum = false;
+      std::vector< std::string > verts;
+      std::string v = "";
+      bool parseError = false;
+      for (int i = 0; i < numVertices; ++i) {
+        if (!(ss >> v)) {
+          parseError = true;
+          break;
         }
+        verts.push_back(v);
       }
-      if (!isCountNum) {
+      std::string extra = "";
+      if (parseError || (ss >> extra) || table.has(resGraph) || !table.has(srcGraph)) {
         out << "<INVALID COMMAND>\n";
         continue;
       }
-
-      const std::size_t count = std::stoull(countStr);
-      if (tokens.size() != 4 + count) {
-        out << "<INVALID COMMAND>\n";
-        continue;
-      }
-      if (!table.has(source) || table.has(target) || target == source) {
-        out << "<INVALID COMMAND>\n";
-        continue;
-      }
-
-      const auto & srcGraph = table.at(source);
+      const Graph & source = table.get(srcGraph);
       bool allExist = true;
-      std::vector< std::string > allowedVertices;
-      for (std::size_t i = 0; i < count; ++i) {
-        const std::string v = tokens[4 + i];
-        if (!srcGraph.hasVertex(v)) {
+      for (const auto & vertex : verts) {
+        if (!source.hasVertex(vertex)) {
           allExist = false;
+          break;
         }
-        allowedVertices.push_back(v);
       }
       if (!allExist) {
         out << "<INVALID COMMAND>\n";
         continue;
       }
-
-      Graph res;
-      for (const auto & v : allowedVertices) {
-        res.addVertex(v);
+      Graph resGraphObj;
+      for (const auto & vertex : verts) {
+        resGraphObj.addVertex(vertex);
       }
-      for (const auto & v : allowedVertices) {
-        const auto adj = srcGraph.outbound(v);
-        for (const auto & p : adj) {
-          bool found = false;
-          for (const auto & av : allowedVertices) {
-            if (av == p.first) {
-              found = true;
-              break;
-            }
-          }
-          if (found) {
-            for (const unsigned int w : p.second) {
-              res.addEdge(v, p.first, w);
+      for (const auto & from : verts) {
+        const auto edges = source.outbound(from);
+        for (const auto & edge : edges) {
+          const std::string & to = edge.first;
+          const auto it = std::find(verts.begin(), verts.end(), to);
+          if (it != verts.end()) {
+            for (const unsigned int w : edge.second) {
+              resGraphObj.addEdge(from, to, w);
             }
           }
         }
       }
-
       bool inserted = false;
       while (!inserted) {
         try {
-          table.add(target, res);
+          table.add(resGraph, resGraphObj);
           inserted = true;
-        } catch (const TableFullException &) {
+        } catch (...) {
           table.rehash(table.capacity() * 2 + 1);
         }
       }
-    } else {
+    }
+    else {
       out << "<INVALID COMMAND>\n";
     }
   }
