@@ -166,7 +166,15 @@ public:
     return findNode(k) != nullptr;
   }
 
-  Value get(Key k) const {
+  Value& get(Key k) {
+    Node<Key, Value>* node = findNode(k);
+    if (!node) {
+      throw std::out_of_range("Key not found");
+    }
+    return node->data_.second;
+  }
+
+  const Value& get(Key k) const {
     Node<Key, Value>* node = findNode(k);
     if (!node) {
       throw std::out_of_range("Key not found");
@@ -220,7 +228,7 @@ public:
       x->parent_->right_ = y;
     }
     y->left_ = x;
-    x->parent_ = y;
+    x->parent = y;
     return const_iterator(y);
   }
 
@@ -230,7 +238,7 @@ public:
       return it;
     }
     Node<Key, Value>* x = y->left_;
-    y->left_ = x->right_;
+    y->left = x->right_;
     if (x->right_) {
       x->right_->parent_ = y;
     }
