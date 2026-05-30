@@ -1,5 +1,6 @@
 #include "commands.hpp"
 #include <iostream>
+#include <sstream>
 
 namespace loseva {
 
@@ -31,16 +32,29 @@ void complementDs(Dataset& res, const Dataset& d1, const Dataset& d2) {
 }
 
 void processCommands(DatasetsMap& datasets) {
-  std::string cmd;
-  while (std::cin >> cmd) {
+  std::string line;
+  while (std::getline(std::cin, line)) {
+    if (line.empty()) {
+      continue;
+    }
+    std::stringstream ss(line);
+    std::string cmd;
+    if (!(ss >> cmd)) {
+      continue;
+    }
+
     if (cmd == "print") {
       std::string target;
-      std::cin >> target;
+      std::string extra;
+      if (!(ss >> target) || (ss >> extra)) {
+        std::cout << "<INVALID COMMAND>\n";
+        continue;
+      }
       if (!datasets.has(target)) {
         std::cout << "<INVALID COMMAND>\n";
         continue;
       }
-      Dataset ds = datasets.get(target);
+      const Dataset& ds = datasets.get(target);
       if (ds.empty()) {
         std::cout << "<EMPTY>\n";
       } else {
@@ -52,7 +66,11 @@ void processCommands(DatasetsMap& datasets) {
       }
     } else if (cmd == "intersect" || cmd == "union" || cmd == "complement") {
       std::string newDs, d1Name, d2Name;
-      std::cin >> newDs >> d1Name >> d2Name;
+      std::string extra;
+      if (!(ss >> newDs >> d1Name >> d2Name) || (ss >> extra)) {
+        std::cout << "<INVALID COMMAND>\n";
+        continue;
+      }
 
       if (!datasets.has(d1Name) || !datasets.has(d2Name)) {
         std::cout << "<INVALID COMMAND>\n";
@@ -73,10 +91,6 @@ void processCommands(DatasetsMap& datasets) {
       datasets.push(newDs, result);
     } else {
       std::cout << "<INVALID COMMAND>\n";
-    }
-
-    if (std::cin.eof()) {
-      break;
     }
   }
 }
