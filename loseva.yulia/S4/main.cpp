@@ -3,6 +3,7 @@
 #include <iostream>
 #include <fstream>
 #include <string>
+#include <sstream>
 
 int main(int argc, char** argv) {
   if (argc < 2) {
@@ -17,17 +18,26 @@ int main(int argc, char** argv) {
   }
 
   loseva::DatasetsMap datasets;
-  std::string dsName;
-  int key;
-  std::string val;
+  std::string line;
 
-  while (infile >> dsName >> key >> val) {
+  while (std::getline(infile, line)) {
+    if (line.empty()) {
+      continue;
+    }
+    std::stringstream ss(line);
+    std::string dsName;
+    if (!(ss >> dsName)) {
+      continue;
+    }
     if (!datasets.has(dsName)) {
       datasets.push(dsName, loseva::Dataset());
     }
-    loseva::Dataset ds = datasets.get(dsName);
-    ds.push(key, val);
-    datasets.push(dsName, ds);
+
+    int key;
+    std::string val;
+    while (ss >> key >> val) {
+      datasets.get(dsName).push(key, val);
+    }
   }
   infile.close();
 
