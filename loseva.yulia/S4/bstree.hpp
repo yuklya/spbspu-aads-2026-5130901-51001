@@ -136,7 +136,7 @@ public:
 
   void push(Key k, Value v) {
     if (!root_) {
-      root = new Node<Key, Value>(k, v);
+      root_ = new Node<Key, Value>(k, v);
       ++size_;
       return;
     }
