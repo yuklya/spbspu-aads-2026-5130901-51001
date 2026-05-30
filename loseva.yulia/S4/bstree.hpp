@@ -136,7 +136,7 @@ public:
 
   void push(Key k, Value v) {
     if (!root_) {
-      root_ = new Node<Key, Value>(k, v);
+      root = new Node<Key, Value>(k, v);
       ++size_;
       return;
     }
@@ -228,7 +228,7 @@ public:
       x->parent_->right_ = y;
     }
     y->left_ = x;
-    x->parent = y;
+    x->parent_ = y;
     return const_iterator(y);
   }
 
@@ -238,7 +238,7 @@ public:
       return it;
     }
     Node<Key, Value>* x = y->left_;
-    y->left = x->right_;
+    y->left_ = x->right_;
     if (x->right_) {
       x->right_->parent_ = y;
     }
