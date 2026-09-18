@@ -32,7 +32,7 @@ public:
   using pointer = const T *;
   using reference = const T &;
 
-  AVLConstIterator(Node< T > * node = nullptr):
+  AVLConstIterator(Node< T > * node = nullptr) noexcept:
     current_(node)
   {}
 
@@ -71,17 +71,17 @@ public:
     return tmp;
   }
 
-  bool operator==(const AVLConstIterator & rhs) const
+  bool operator==(const AVLConstIterator & rhs) const noexcept
   {
     return current_ == rhs.current_;
   }
 
-  bool operator!=(const AVLConstIterator & rhs) const
+  bool operator!=(const AVLConstIterator & rhs) const noexcept
   {
     return current_ != rhs.current_;
   }
 
-  Node< T > * getNode() const
+  Node< T > * getNode() const noexcept
   {
     return current_;
   }
@@ -95,14 +95,14 @@ class AVLTree {
 public:
   using const_iterator = AVLConstIterator< T >;
 
-  AVLTree():
+  AVLTree() noexcept:
     root_(nullptr),
     size_(0)
   {}
 
-  ~AVLTree()
+  ~AVLTree() noexcept
   {
-    clearTree(root_);
+    clear();
   }
 
   AVLTree(const AVLTree & rhs):
@@ -114,12 +114,32 @@ public:
     }
   }
 
+  AVLTree(AVLTree && rhs) noexcept:
+    root_(rhs.root_),
+    size_(rhs.size_)
+  {
+    rhs.root_ = nullptr;
+    rhs.size_ = 0;
+  }
+
   AVLTree & operator=(const AVLTree & rhs)
   {
     if (this != &rhs) {
       AVLTree tmp(rhs);
       std::swap(root_, tmp.root_);
       std::swap(size_, tmp.size_);
+    }
+    return *this;
+  }
+
+  AVLTree & operator=(AVLTree && rhs) noexcept
+  {
+    if (this != &rhs) {
+      clear();
+      root_ = rhs.root_;
+      size_ = rhs.size_;
+      rhs.root_ = nullptr;
+      rhs.size_ = 0;
     }
     return *this;
   }
@@ -144,24 +164,44 @@ public:
     return true;
   }
 
-  bool has(const T & val) const
+  bool has(const T & val) const noexcept
   {
     return findNode(val) != nullptr;
   }
 
-  void clear()
+  // Пункт 1 и 2: Итеративная очистка дерева через повороты + noexcept
+  void clear() noexcept
   {
-    clearTree(root_);
-    root_ = nullptr;
+    while (root_ != nullptr) {
+      if (root_->left_ != nullptr) {
+        Node< T > * leftChild = root_->left_;
+        root_->left_ = leftChild->right_;
+        if (leftChild->right_) {
+          leftChild->right_->parent_ = root_;
+        }
+        leftChild->right_ = root_;
+        root_->parent_ = leftChild;
+        root_ = leftChild;
+        root_->parent_ = nullptr;
+      } else {
+        Node< T > * temp = root_;
+        root_ = root_->right_;
+        if (root_) {
+          root_->parent_ = nullptr;
+        }
+        delete temp;
+      }
+    }
     size_ = 0;
   }
 
-  int height() const
+  int height() const noexcept
   {
     return height(root_);
   }
 
-  bool empty() const
+  // Пункт 2: Не генерирует исключений
+  bool empty() const noexcept
   {
     return size_ == 0;
   }
@@ -214,12 +254,12 @@ public:
     updateHeightsUpward(y);
   }
 
-  const_iterator cbegin() const
+  const_iterator cbegin() const noexcept
   {
     return const_iterator(minNode(root_));
   }
 
-  const_iterator cend() const
+  const_iterator cend() const noexcept
   {
     return const_iterator(nullptr);
   }
@@ -237,17 +277,17 @@ private:
   Node< T > * root_;
   std::size_t size_;
 
-  int height(Node< T > * p) const
+  int height(Node< T > * p) const noexcept
   {
     return p ? p->height_ : 0;
   }
 
-  int bfactor(Node< T > * p) const
+  int bfactor(Node< T > * p) const noexcept
   {
     return p ? height(p->right_) - height(p->left_) : 0;
   }
 
-  void fixHeight(Node< T > * p)
+  void fixHeight(Node< T > * p) noexcept
   {
     if (p) {
       int hl = height(p->left_);
@@ -256,7 +296,7 @@ private:
     }
   }
 
-  void updateHeightsUpward(Node< T > * p)
+  void updateHeightsUpward(Node< T > * p) noexcept
   {
     while (p) {
       fixHeight(p);
@@ -264,7 +304,7 @@ private:
     }
   }
 
-  Node< T > * rotateRight(Node< T > * p)
+  Node< T > * rotateRight(Node< T > * p) noexcept
   {
     Node< T > * q = p->left_;
     p->left_ = q->right_;
@@ -279,7 +319,7 @@ private:
     return q;
   }
 
-  Node< T > * rotateLeft(Node< T > * q)
+  Node< T > * rotateLeft(Node< T > * q) noexcept
   {
     Node< T > * p = q->right_;
     q->right_ = p->left_;
@@ -294,7 +334,7 @@ private:
     return p;
   }
 
-  Node< T > * balance(Node< T > * p)
+  Node< T > * balance(Node< T > * p) noexcept
   {
     fixHeight(p);
     if (bfactor(p) == 2) {
@@ -327,7 +367,7 @@ private:
     return balance(p);
   }
 
-  Node< T > * findMin(Node< T > * p) const
+  Node< T > * findMin(Node< T > * p) const noexcept
   {
     return p->left_ ? findMin(p->left_) : p;
   }
@@ -373,7 +413,7 @@ private:
     return balance(p);
   }
 
-  Node< T > * findNode(const T & val) const
+  Node< T > * findNode(const T & val) const noexcept
   {
     Node< T > * curr = root_;
     while (curr) {
@@ -388,22 +428,13 @@ private:
     return nullptr;
   }
 
-  Node< T > * minNode(Node< T > * p) const
+  Node< T > * minNode(Node< T > * p) const noexcept
   {
     if (!p) return nullptr;
     while (p->left_) {
       p = p->left_;
     }
     return p;
-  }
-
-  void clearTree(Node< T > * p)
-  {
-    if (p) {
-      clearTree(p->left_);
-      clearTree(p->right_);
-      delete p;
-    }
   }
 
   void printShapeRec(
