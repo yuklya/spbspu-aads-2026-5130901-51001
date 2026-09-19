@@ -2,10 +2,9 @@
 #define LOSEVA_COMMANDS_HPP
 
 #include "avl_tree.hpp"
-#include <map>
-#include <string>
 #include <iostream>
 #include <stdexcept>
+#include <string>
 
 namespace loseva {
 
@@ -17,8 +16,27 @@ public:
 };
 
 using Dataset = AVLTree< int >;
-using DatasetsMap = std::map< std::string, Dataset >;
-using IteratorsMap = std::map< std::string, Dataset::const_iterator >;
+
+struct DatasetPair {
+  std::string name;
+  Dataset tree;
+
+  bool operator<(const DatasetPair & rhs) const noexcept { return name < rhs.name; }
+  bool operator>(const DatasetPair & rhs) const noexcept { return name > rhs.name; }
+  bool operator==(const DatasetPair & rhs) const noexcept { return name == rhs.name; }
+};
+
+struct IteratorPair {
+  std::string name;
+  Dataset::const_iterator iter;
+
+  bool operator<(const IteratorPair & rhs) const noexcept { return name < rhs.name; }
+  bool operator>(const IteratorPair & rhs) const noexcept { return name > rhs.name; }
+  bool operator==(const IteratorPair & rhs) const noexcept { return name == rhs.name; }
+};
+
+using DatasetsMap = AVLTree< DatasetPair >;
+using IteratorsMap = AVLTree< IteratorPair >;
 
 void cmdCreate(std::istream & is, std::ostream & os, DatasetsMap & dms);
 void cmdInsert(std::istream & is, std::ostream & os, DatasetsMap & dms);
