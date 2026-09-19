@@ -5,14 +5,14 @@ namespace loseva {
 void cmdIterator(std::istream & is, std::ostream & os, IteratorsMap & ims)
 {
   std::string iterName;
-  if (!(is >> iterName) || !ims.count(iterName)) {
+  if (!(is >> iterName)) {
     throw CommandException("<INVALID COMMAND>");
   }
-  auto it = ims[iterName];
-  if (it.getNode() == nullptr) {
+  IteratorPair * pIter = ims.find({iterName, Dataset::const_iterator{}});
+  if (!pIter || pIter->iter.getNode() == nullptr) {
     throw CommandException("<INVALID COMMAND>");
   }
-  os << "Текущий элемент итератора " << iterName << ": " << *it << "\n";
+  os << "Текущий элемент итератора " << iterName << ": " << *(pIter->iter) << "\n";
 }
 
 }
