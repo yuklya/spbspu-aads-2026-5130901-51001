@@ -16,7 +16,7 @@ struct Node {
   Node* right_;
   Node* parent_;
 
-  explicit Node(const T & val, Node* p = nullptr):
+  explicit Node(const T & val, Node* p = nullptr) noexcept:
     data_(val),
     height_(1),
     left_(nullptr),
@@ -36,17 +36,17 @@ public:
     current_(node)
   {}
 
-  reference operator*() const
+  reference operator*() const noexcept
   {
     return current_->data_;
   }
 
-  pointer operator->() const
+  pointer operator->() const noexcept
   {
     return &(current_->data_);
   }
 
-  AVLConstIterator & operator++()
+  AVLConstIterator & operator++() noexcept
   {
     if (current_->right_) {
       current_ = current_->right_;
@@ -64,7 +64,7 @@ public:
     return *this;
   }
 
-  AVLConstIterator operator++(int)
+  AVLConstIterator operator++(int) noexcept
   {
     AVLConstIterator tmp = *this;
     ++(*this);
@@ -169,7 +169,18 @@ public:
     return findNode(val) != nullptr;
   }
 
-  // Пункт 1 и 2: Итеративная очистка дерева через повороты + noexcept
+  T * find(const T & val) noexcept
+  {
+    Node< T > * node = findNode(val);
+    return node ? &(node->data_) : nullptr;
+  }
+
+  const T * find(const T & val) const noexcept
+  {
+    Node< T > * node = findNode(val);
+    return node ? &(node->data_) : nullptr;
+  }
+
   void clear() noexcept
   {
     while (root_ != nullptr) {
@@ -200,7 +211,6 @@ public:
     return height(root_);
   }
 
-  // Пункт 2: Не генерирует исключений
   bool empty() const noexcept
   {
     return size_ == 0;
