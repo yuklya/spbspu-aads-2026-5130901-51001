@@ -4,14 +4,168 @@
 
 namespace loseva {
 
+using Handler = std::function< void(
+  std::istream &,
+  std::ostream &,
+  DatasetsMap &,
+  IteratorsMap &) >;
+
 struct CommandItem {
   std::string name;
-  std::function< void(std::istream &, std::ostream &, DatasetsMap &, IteratorsMap &) > handler;
+  Handler handler;
 
-  bool operator<(const CommandItem & rhs) const noexcept { return name < rhs.name; }
-  bool operator>(const CommandItem & rhs) const noexcept { return name > rhs.name; }
-  bool operator==(const CommandItem & rhs) const noexcept { return name == rhs.name; }
+  bool operator<(const CommandItem & rhs) const noexcept
+  {
+    return name < rhs.name;
+  }
+  bool operator>(const CommandItem & rhs) const noexcept
+  {
+    return name > rhs.name;
+  }
+  bool operator==(const CommandItem & rhs) const noexcept
+  {
+    return name == rhs.name;
+  }
 };
+
+namespace {
+
+void runBegin(
+  std::istream & is,
+  std::ostream & os,
+  DatasetsMap & dms,
+  IteratorsMap & ims)
+{
+  cmdBegin(is, os, dms, ims);
+}
+
+void runClear(
+  std::istream & is,
+  std::ostream & os,
+  DatasetsMap & dms,
+  IteratorsMap &)
+{
+  cmdClear(is, os, dms);
+}
+
+void runContains(
+  std::istream & is,
+  std::ostream & os,
+  DatasetsMap & dms,
+  IteratorsMap &)
+{
+  cmdContains(is, os, dms);
+}
+
+void runCreate(
+  std::istream & is,
+  std::ostream & os,
+  DatasetsMap & dms,
+  IteratorsMap &)
+{
+  cmdCreate(is, os, dms);
+}
+
+void runHeight(
+  std::istream & is,
+  std::ostream & os,
+  DatasetsMap & dms,
+  IteratorsMap &)
+{
+  cmdHeight(is, os, dms);
+}
+
+void runInsert(
+  std::istream & is,
+  std::ostream & os,
+  DatasetsMap & dms,
+  IteratorsMap &)
+{
+  cmdInsert(is, os, dms);
+}
+
+void runIterator(
+  std::istream & is,
+  std::ostream & os,
+  DatasetsMap &,
+  IteratorsMap & ims)
+{
+  cmdIterator(is, os, ims);
+}
+
+void runMerge(
+  std::istream & is,
+  std::ostream & os,
+  DatasetsMap & dms,
+  IteratorsMap &)
+{
+  cmdMerge(is, os, dms);
+}
+
+void runNext(
+  std::istream & is,
+  std::ostream & os,
+  DatasetsMap &,
+  IteratorsMap & ims)
+{
+  cmdNext(is, os, ims);
+}
+
+void runPrint(
+  std::istream & is,
+  std::ostream & os,
+  DatasetsMap & dms,
+  IteratorsMap &)
+{
+  cmdPrint(is, os, dms);
+}
+
+void runRemove(
+  std::istream & is,
+  std::ostream & os,
+  DatasetsMap & dms,
+  IteratorsMap &)
+{
+  cmdRemove(is, os, dms);
+}
+
+void runRotateLeft(
+  std::istream & is,
+  std::ostream & os,
+  DatasetsMap & dms,
+  IteratorsMap &)
+{
+  cmdRotateLeft(is, os, dms);
+}
+
+void runRotateRight(
+  std::istream & is,
+  std::ostream & os,
+  DatasetsMap & dms,
+  IteratorsMap &)
+{
+  cmdRotateRight(is, os, dms);
+}
+
+void runSearch(
+  std::istream & is,
+  std::ostream & os,
+  DatasetsMap & dms,
+  IteratorsMap &)
+{
+  cmdSearch(is, os, dms);
+}
+
+void runTree(
+  std::istream & is,
+  std::ostream & os,
+  DatasetsMap & dms,
+  IteratorsMap &)
+{
+  cmdTree(is, os, dms);
+}
+
+}
 
 void processCommands(std::istream & in, std::ostream & os)
 {
@@ -20,21 +174,21 @@ void processCommands(std::istream & in, std::ostream & os)
 
   AVLTree< CommandItem > commandTree;
 
-  commandTree.insert({"begin", [](std::istream & is, std::ostream & out, DatasetsMap & dms, IteratorsMap & ims) { cmdBegin(is, out, dms, ims); }});
-  commandTree.insert({"clear", [](std::istream & is, std::ostream & out, DatasetsMap & dms, IteratorsMap &) { cmdClear(is, out, dms); }});
-  commandTree.insert({"contains", [](std::istream & is, std::ostream & out, DatasetsMap & dms, IteratorsMap &) { cmdContains(is, out, dms); }});
-  commandTree.insert({"create", [](std::istream & is, std::ostream & out, DatasetsMap & dms, IteratorsMap &) { cmdCreate(is, out, dms); }});
-  commandTree.insert({"height", [](std::istream & is, std::ostream & out, DatasetsMap & dms, IteratorsMap &) { cmdHeight(is, out, dms); }});
-  commandTree.insert({"insert", [](std::istream & is, std::ostream & out, DatasetsMap & dms, IteratorsMap &) { cmdInsert(is, out, dms); }});
-  commandTree.insert({"iterator", [](std::istream & is, std::ostream & out, DatasetsMap &, IteratorsMap & ims) { cmdIterator(is, out, ims); }});
-  commandTree.insert({"merge", [](std::istream & is, std::ostream & out, DatasetsMap & dms, IteratorsMap &) { cmdMerge(is, out, dms); }});
-  commandTree.insert({"next", [](std::istream & is, std::ostream & out, DatasetsMap &, IteratorsMap & ims) { cmdNext(is, out, ims); }});
-  commandTree.insert({"print", [](std::istream & is, std::ostream & out, DatasetsMap & dms, IteratorsMap &) { cmdPrint(is, out, dms); }});
-  commandTree.insert({"remove", [](std::istream & is, std::ostream & out, DatasetsMap & dms, IteratorsMap &) { cmdRemove(is, out, dms); }});
-  commandTree.insert({"rotate-left", [](std::istream & is, std::ostream & out, DatasetsMap & dms, IteratorsMap &) { cmdRotateLeft(is, out, dms); }});
-  commandTree.insert({"rotate-right", [](std::istream & is, std::ostream & out, DatasetsMap & dms, IteratorsMap &) { cmdRotateRight(is, out, dms); }});
-  commandTree.insert({"search", [](std::istream & is, std::ostream & out, DatasetsMap & dms, IteratorsMap &) { cmdSearch(is, out, dms); }});
-  commandTree.insert({"tree", [](std::istream & is, std::ostream & out, DatasetsMap & dms, IteratorsMap &) { cmdTree(is, out, dms); }});
+  commandTree.insert({"begin", runBegin});
+  commandTree.insert({"clear", runClear});
+  commandTree.insert({"contains", runContains});
+  commandTree.insert({"create", runCreate});
+  commandTree.insert({"height", runHeight});
+  commandTree.insert({"insert", runInsert});
+  commandTree.insert({"iterator", runIterator});
+  commandTree.insert({"merge", runMerge});
+  commandTree.insert({"next", runNext});
+  commandTree.insert({"print", runPrint});
+  commandTree.insert({"remove", runRemove});
+  commandTree.insert({"rotate-left", runRotateLeft});
+  commandTree.insert({"rotate-right", runRotateRight});
+  commandTree.insert({"search", runSearch});
+  commandTree.insert({"tree", runTree});
 
   std::string cmd;
   while (in >> cmd) {
@@ -48,7 +202,10 @@ void processCommands(std::istream & in, std::ostream & os)
     } catch (const std::exception &) {
       os << "<INVALID COMMAND>\n";
       in.clear();
-      in.ignore(std::numeric_limits< std::streamsize >::max(), '\n');
+      in.ignore(
+        std::numeric_limits< std::streamsize >::max(),
+        '\n'
+      );
     }
   }
 }
