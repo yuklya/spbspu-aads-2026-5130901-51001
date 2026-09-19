@@ -5,8 +5,16 @@
 #include <map>
 #include <string>
 #include <iostream>
+#include <stdexcept>
 
 namespace loseva {
+
+class CommandException : public std::runtime_error {
+public:
+  explicit CommandException(const std::string & msg = "<INVALID COMMAND>") :
+    std::runtime_error(msg)
+  {}
+};
 
 using Dataset = AVLTree< int >;
 using DatasetsMap = std::map< std::string, Dataset >;
